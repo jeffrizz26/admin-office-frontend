@@ -90,18 +90,28 @@ export default function App() {
     }
   };
 
-  // Matalinong Pagsasala ng Datos para sa Dashboard Tabs
   const filteredTransactions = transactions.filter(tx => {
     if (dashboardTab === 'active') {
-      return tx.status !== 'Completed'; // Ipakita lahat maliban sa Completed
+      return tx.status !== 'Completed';
     } else {
-      return tx.status === 'Completed'; // Ipakita LANG ang mga Completed
+      return tx.status === 'Completed';
     }
   });
 
+  // Function para sa Enter key o Click submission ng Admin Login
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    if (adminPasswordInput === ADMIN_SECRET_PASSWORD) {
+      setView('dashboard');
+      setAdminPasswordInput('');
+    } else {
+      alert('❌ Wrong Password!');
+    }
+  };
+
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px' }}>
-      {/* Top Navigation Navigation */}
+      {/* Top Navigation */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
         <button onClick={() => setView('form')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📄 Transaction Form</button>
         <button onClick={() => setView(view === 'dashboard' ? 'dashboard' : 'login')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📊 Admin Dashboard</button>
@@ -181,30 +191,38 @@ export default function App() {
         </div>
       )}
 
-      {/* 2. LOGIN VIEW */}
+      {/* 2. LOGIN VIEW (INAYOS NA: PWEDE NA MAG-ENTER KEY) */}
       {view === 'login' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '350px', margin: '0 auto', textAlign: 'center' }}>
           <h2>Admin Login</h2>
-          <input type="password" placeholder="Enter Admin Password" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} style={{ padding: '10px', width: '80%', borderRadius: '5px', border: '1px solid #ccc', marginBottom: '15px', textAlign: 'center' }}/>
-          <br/>
-          <button onClick={() => { if (adminPasswordInput === ADMIN_SECRET_PASSWORD) { setView('dashboard'); setAdminPasswordInput(''); } else { alert('❌ Wrong Password!'); } }} style={{ padding: '10px 20px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Unlock Dashboard</button>
+          <form onSubmit={handleAdminLogin}>
+            <input 
+              type="password" 
+              placeholder="Enter Admin Password" 
+              value={adminPasswordInput} 
+              onChange={(e) => setAdminPasswordInput(e.target.value)} 
+              required
+              style={{ padding: '10px', width: '80%', borderRadius: '5px', border: '1px solid #ccc', marginBottom: '15px', textAlign: 'center' }}
+            />
+            <br/>
+            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Unlock Dashboard</button>
+          </form>
         </div>
       )}
 
       {/* 3. ADMIN DASHBOARD VIEW */}
       {view === 'dashboard' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ margin: '0' }}>Admin Office Transaction Dashboard</h2>
             <button onClick={() => setView('form')} style={{ padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Lock Dashboard</button>
           </div>
 
-          {/* Dito Na Ang Mga Bagong Filtet Tabs */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <button onClick={() => setDashboardTab('active')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? '#white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
+            <button onClick={() => setDashboardTab('active')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
               📥 Active Transactions ({transactions.filter(t => t.status !== 'Completed').length})
             </button>
-            <button onClick={() => setDashboardTab('archive')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: dashboardTab === 'archive' ? '#4b5563' : '#f3f4f6', color: dashboardTab === 'archive' ? '#white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
+            <button onClick={() => setDashboardTab('archive')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: dashboardTab === 'archive' ? '#4b5563' : '#f3f4f6', color: dashboardTab === 'archive' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
               🗄️ History / Archives ({transactions.filter(t => t.status === 'Completed').length})
             </button>
           </div>
