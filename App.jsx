@@ -13,7 +13,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   // BASE URL LAMANG PARA SA TAMANG ROUTING NG VERCEL
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const BACKEND_URL = 'https://vercel.app';
   const ADMIN_SECRET_PASSWORD = '1234';
 
   useEffect(() => {
