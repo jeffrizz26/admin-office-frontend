@@ -14,6 +14,9 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Gagamit ng window width para sa responsive desktop vs mobile detection sa React
+  const [isMobile, setIsMobile] = useState(false);
+
   const BACKEND_URL = 'https://admin-office-backend.vercel.app';
   const ADMIN_SECRET_PASSWORD = '1234';
 
@@ -32,7 +35,16 @@ export default function App() {
 
     fetchTransactions();
     const interval = setInterval(fetchTransactions, 5000);
-    return () => clearInterval(interval);
+
+    // Subaybayan ang sukat ng screen ng user
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize(); // Run sa simula
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const handleInputChange = (e) => {
@@ -98,7 +110,6 @@ export default function App() {
     }
   });
 
-  // Function para sa Enter key o Click submission ng Admin Login
   const handleAdminLogin = (e) => {
     e.preventDefault();
     if (adminPasswordInput === ADMIN_SECRET_PASSWORD) {
@@ -110,19 +121,19 @@ export default function App() {
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px' }}>
+    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: isMobile ? '10px' : '20px' }}>
       {/* Top Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
-        <button onClick={() => setView('form')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📄 Transaction Form</button>
-        <button onClick={() => setView(view === 'dashboard' ? 'dashboard' : 'login')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📊 Admin Dashboard</button>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
+        <button onClick={() => setView('form')} style={{ flex: isMobile ? 1 : 'initial', padding: '10px 15px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px' }}>📄 Form</button>
+        <button onClick={() => setView(view === 'dashboard' ? 'dashboard' : 'login')} style={{ flex: isMobile ? 1 : 'initial', padding: '10px 15px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px' }}>📊 Dashboard</button>
       </div>
 
       {/* 1. TRANSACTION FORM VIEW */}
       {view === 'form' && (
-        <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '450px', margin: '0 auto' }}>
+        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '450px', margin: '0 auto' }}>
           {step === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <h2 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Admin Office Transaction</h2>
+              <h2 style={{ textAlign: 'center', margin: '0 0 5px 0', fontSize: isMobile ? '20px' : '24px' }}>Admin Office Transaction</h2>
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
               <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
@@ -183,7 +194,7 @@ export default function App() {
               <h3>Thank you for answering.</h3>
               <div style={{ backgroundColor: '#fef08a', padding: '15px', borderRadius: '5px', margin: '20px 0', border: '1px solid #fef08a' }}>
                 <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#6b7280' }}>Your Tracking Number:</p>
-                <h2 style={{ margin: '0', letterSpacing: '1px', color: '#1e293b' }}>{generatedTracking}</h2>
+                <h2 style={{ margin: '0', letterSpacing: '1px', color: '#1e293b', fontSize: isMobile ? '20px' : '24px' }}>{generatedTracking}</h2>
               </div>
               <button onClick={resetForm} style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>New Transaction</button>
             </div>
@@ -191,19 +202,11 @@ export default function App() {
         </div>
       )}
 
-      {/* 2. LOGIN VIEW (INAYOS NA: PWEDE NA MAG-ENTER KEY) */}
       {view === 'login' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '350px', margin: '0 auto', textAlign: 'center' }}>
           <h2>Admin Login</h2>
           <form onSubmit={handleAdminLogin}>
-            <input 
-              type="password" 
-              placeholder="Enter Admin Password" 
-              value={adminPasswordInput} 
-              onChange={(e) => setAdminPasswordInput(e.target.value)} 
-              required
-              style={{ padding: '10px', width: '80%', borderRadius: '5px', border: '1px solid #ccc', marginBottom: '15px', textAlign: 'center' }}
-            />
+            <input type="password" placeholder="Enter Admin Password" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required style={{ padding: '10px', width: '80%', borderRadius: '5px', border: '1px solid #ccc', marginBottom: '15px', textAlign: 'center' }}/>
             <br/>
             <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Unlock Dashboard</button>
           </form>
@@ -212,24 +215,54 @@ export default function App() {
 
       {/* 3. ADMIN DASHBOARD VIEW */}
       {view === 'dashboard' && (
-        <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ margin: '0' }}>Admin Office Transaction Dashboard</h2>
-            <button onClick={() => setView('form')} style={{ padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Lock Dashboard</button>
+        <div style={{ backgroundColor: 'white', padding: isMobile ? '15px' : '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '15px', marginBottom: '20px' }}>
+            <h2 style={{ margin: '0', fontSize: isMobile ? '18px' : '24px' }}>Office Dashboard</h2>
+            <button onClick={() => setView('form')} style={{ width: isMobile ? '100%' : 'auto', padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Lock Dashboard</button>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <button onClick={() => setDashboardTab('active')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
-              📥 Active Transactions ({transactions.filter(t => t.status !== 'Completed').length})
+          {/* Filter Tabs */}
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px', marginBottom: '20px' }}>
+            <button onClick={() => setDashboardTab('active')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: '13px' }}>
+              📥 Active ({transactions.filter(t => t.status !== 'Completed').length})
             </button>
-            <button onClick={() => setDashboardTab('archive')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: dashboardTab === 'archive' ? '#4b5563' : '#f3f4f6', color: dashboardTab === 'archive' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
-              🗄️ History / Archives ({transactions.filter(t => t.status === 'Completed').length})
+            <button onClick={() => setDashboardTab('archive')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'archive' ? '#4b5563' : '#f3f4f6', color: dashboardTab === 'archive' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: '13px' }}>
+              🗄️ Archives ({transactions.filter(t => t.status === 'Completed').length})
             </button>
           </div>
 
           {loading ? (
             <p style={{ textAlign: 'center' }}>Loading log details...</p>
+          ) : filteredTransactions.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>No transactions under this tab.</p>
+          ) : isMobile ? (
+            /* A. MOBILE CARDS VIEW (Awtomatikong lalabas kapag Cellphone ang gamit) */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {filteredTransactions.map((tx) => (
+                <div key={tx._id} style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', borderLeft: `6px solid ${tx.urgency === 'Urgent' && tx.status !== 'Completed' ? '#dc2626' : '#2563eb'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '15px' }}>{tx.trackingNumber || 'N/A'}</span>
+                    <span style={{ fontSize: '12px', padding: '2px 6px', borderRadius: '4px', backgroundColor: tx.urgency === 'Urgent' ? '#fef2f2' : '#f3f4f6', color: tx.urgency === 'Urgent' ? '#dc2626' : '#6b7280', fontWeight: 'bold' }}>
+                      {tx.urgency === 'Urgent' ? '⚠️ Urgent' : 'Regular'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Pangalan:</strong> {tx.lastName}, {tx.firstName}</p>
+                  <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Purpose:</strong> {tx.purpose}</p>
+                  {tx.subPurpose && <p style={{ margin: '4px 0', fontSize: '14px', color: '#2563eb' }}><strong>Detail:</strong> {tx.subPurpose}</p>}
+                  
+                  <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#4b5563' }}>Status:</span>
+                    <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} style={{ padding: '6px', borderRadius: '5px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: tx.status === 'Completed' ? '#dcfce7' : tx.status === 'In Progress' ? '#dbeafe' : '#fef9c3', color: tx.status === 'Completed' ? '#16a34a' : tx.status === 'In Progress' ? '#2563eb' : '#ca8a04', fontSize: '13px' }}>
+                      <option value="Pending">🕒 Pending</option>
+                      <option value="In Progress">⚙️ In Progress</option>
+                      <option value="Completed">✅ Completed</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* B. DESKTOP TABLE VIEW (Awtomatikong lalabas kapag Laptop o PC ang gamit) */
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
@@ -243,30 +276,24 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No transactions under this tab.</td>
+                  {filteredTransactions.map((tx) => (
+                    <tr key={tx._id} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: tx.urgency === 'Urgent' && tx.status !== 'Completed' ? '#fef2f2' : 'white' }}>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#1e3a8a' }}>{tx.trackingNumber || 'N/A'}</td>
+                      <td style={{ padding: '12px' }}>{tx.lastName}, {tx.firstName}</td>
+                      <td style={{ padding: '12px', color: tx.urgency === 'Urgent' ? '#dc2626' : '#333', fontWeight: tx.urgency === 'Urgent' ? 'bold' : 'normal' }}>
+                        {tx.urgency === 'Urgent' ? '⚠️ Urgent' : 'Regular'}
+                      </td>
+                      <td style={{ padding: '12px' }}>{tx.purpose}</td>
+                      <td style={{ padding: '12px', color: '#2563eb' }}>{tx.subPurpose || '-'}</td>
+                      <td style={{ padding: '12px' }}>
+                        <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} style={{ padding: '6px', borderRadius: '5px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: tx.status === 'Completed' ? '#dcfce7' : tx.status === 'In Progress' ? '#dbeafe' : '#fef9c3', color: tx.status === 'Completed' ? '#16a34a' : tx.status === 'In Progress' ? '#2563eb' : '#ca8a04' }}>
+                          <option value="Pending">🕒 Pending</option>
+                          <option value="In Progress">⚙️ In Progress</option>
+                          <option value="Completed">✅ Completed</option>
+                        </select>
+                      </td>
                     </tr>
-                  ) : (
-                    filteredTransactions.map((tx) => (
-                      <tr key={tx._id} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: tx.urgency === 'Urgent' && tx.status !== 'Completed' ? '#fef2f2' : 'white' }}>
-                        <td style={{ padding: '12px', fontWeight: 'bold', color: '#1e3a8a' }}>{tx.trackingNumber || 'N/A'}</td>
-                        <td style={{ padding: '12px' }}>{tx.lastName}, {tx.firstName}</td>
-                        <td style={{ padding: '12px', color: tx.urgency === 'Urgent' ? '#dc2626' : '#333', fontWeight: tx.urgency === 'Urgent' ? 'bold' : 'normal' }}>
-                          {tx.urgency === 'Urgent' ? '⚠️ Urgent' : 'Regular'}
-                        </td>
-                        <td style={{ padding: '12px' }}>{tx.purpose}</td>
-                        <td style={{ padding: '12px', color: '#2563eb' }}>{tx.subPurpose || '-'}</td>
-                        <td style={{ padding: '12px' }}>
-                          <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} style={{ padding: '6px', borderRadius: '5px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: tx.status === 'Completed' ? '#dcfce7' : tx.status === 'In Progress' ? '#dbeafe' : '#fef9c3', color: tx.status === 'Completed' ? '#16a34a' : tx.status === 'In Progress' ? '#2563eb' : '#ca8a04' }}>
-                            <option value="Pending">🕒 Pending</option>
-                            <option value="In Progress">⚙️ In Progress</option>
-                            <option value="Completed">✅ Completed</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
