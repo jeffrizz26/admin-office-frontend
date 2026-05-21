@@ -12,7 +12,7 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const BACKEND_URL = 'http://admin-office-backend.vercel.app/api/transactions';
+  const BACKEND_URL = 'https://admin-office-backend.vercel.app/api/transactions';
   const ADMIN_SECRET_PASSWORD = '1234';
 
   useEffect(() => {
