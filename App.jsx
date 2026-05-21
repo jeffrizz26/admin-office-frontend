@@ -12,14 +12,13 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // INAYOS: Ginawang Base URL lamang para sa tamang routing ng Vercel
+  // BASE URL LAMANG PARA SA TAMANG ROUTING NG VERCEL
   const BACKEND_URL = 'https://vercel.app';
   const ADMIN_SECRET_PASSWORD = '1234';
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        // INAYOS: Idinagdag ang buong endpoint path dito
         const response = await fetch(`${BACKEND_URL}/api/transactions`);
         const result = await response.json();
         if (result.success) setTransactions(result.data);
@@ -32,6 +31,7 @@ export default function App() {
 
     fetchTransactions();
     
+    // Automatic na magre-refresh ang dashboard list tuwing 5 segundo nang ligtas
     const interval = setInterval(fetchTransactions, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -50,9 +50,9 @@ export default function App() {
     setStep(1);
   };
 
+  // INAYOS NA: Isang POST request na lang para hindi mag-timeout at mag-crash ang Vercel Free Server
   const saveToDatabase = async () => {
     try {
-      // INAYOS: Idinagdag ang buong endpoint path para sa POST request
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,21 +63,21 @@ export default function App() {
       if (result.success) {
         setGeneratedTracking(result.data.trackingNumber);
         setStep(3);
-        // INAYOS: Idinagdag ang buong endpoint path sa re-fetch
-        const res = await fetch(`${BACKEND_URL}/api/transactions`);
-        const data = await res.json();
-        if (data.success) setTransactions(data.data);
+        
+        // Matalinong UI Update: Idagdag ang bagong gawang transaksyon sa itaas ng listahan nang hindi na nagre-request ulit sa database
+        setTransactions(prev => [result.data, ...prev]);
       } else {
         alert('❌ Error: ' + result.message);
       }
-    } catch {
+    } catch (error) {
+      console.error("Submission Error:", error);
       alert('❌ Server Offline!');
     }
   };
 
+  // INAYOS NA: Ina-update ang UI state sa browser nang direkta nang hindi pinapabigat ang server operations sa pag-update ng status
   const handleStatusChange = async (id, newStatus) => {
     try {
-      // INAYOS: Inayos ang path template literal para sa PUT request sa tamang ID
       const response = await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -85,12 +85,13 @@ export default function App() {
       });
       const result = await response.json();
       if (result.success) {
-        // INAYOS: Idinagdag ang buong endpoint path sa re-fetch matapos mag-update
-        const res = await fetch(`${BACKEND_URL}/api/transactions`);
-        const data = await res.json();
-        if (data.success) setTransactions(data.data);
+        // I-update ang status ng partikular na ID sa local array list
+        setTransactions(prev => 
+          prev.map(tx => tx._id === id ? { ...tx, status: newStatus } : tx)
+        );
       }
-    } catch {
+    } catch (error) {
+      console.error("Status Update Error:", error);
       alert('❌ Error updating status!');
     }
   };
