@@ -12,13 +12,15 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const BACKEND_URL = 'https://admin-office-backend.vercel.app/api/transactions';
+  // INAYOS: Ginawang Base URL lamang para sa tamang routing ng Vercel
+  const BACKEND_URL = 'https://vercel.app';
   const ADMIN_SECRET_PASSWORD = '1234';
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await fetch(BACKEND_URL);
+        // INAYOS: Idinagdag ang buong endpoint path dito
+        const response = await fetch(`${BACKEND_URL}/api/transactions`);
         const result = await response.json();
         if (result.success) setTransactions(result.data);
       } catch (error) {
@@ -50,7 +52,8 @@ export default function App() {
 
   const saveToDatabase = async () => {
     try {
-      const response = await fetch(BACKEND_URL, {
+      // INAYOS: Idinagdag ang buong endpoint path para sa POST request
+      const response = await fetch(`${BACKEND_URL}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -60,7 +63,8 @@ export default function App() {
       if (result.success) {
         setGeneratedTracking(result.data.trackingNumber);
         setStep(3);
-        const res = await fetch(BACKEND_URL);
+        // INAYOS: Idinagdag ang buong endpoint path sa re-fetch
+        const res = await fetch(`${BACKEND_URL}/api/transactions`);
         const data = await res.json();
         if (data.success) setTransactions(data.data);
       } else {
@@ -73,14 +77,16 @@ export default function App() {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/${id}`, {
+      // INAYOS: Inayos ang path template literal para sa PUT request sa tamang ID
+      const response = await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
       const result = await response.json();
       if (result.success) {
-        const res = await fetch(BACKEND_URL);
+        // INAYOS: Idinagdag ang buong endpoint path sa re-fetch matapos mag-update
+        const res = await fetch(`${BACKEND_URL}/api/transactions`);
         const data = await res.json();
         if (data.success) setTransactions(data.data);
       }
@@ -139,7 +145,7 @@ export default function App() {
               )}
 
               {formData.purpose === 'Submit Document(s) for Processing' && (
-                <div style={{ backgroundColor: '#f0fdf4', processing: '15px', borderRadius: '5px', border: '1px solid #bbf7d0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ backgroundColor: '#f0fdf4', padding: '15px', borderRadius: '5px', border: '1px solid #bbf7d0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
                     <option value="">-- Choose Document Type --</option>
                     <option value="Travel Authority(Local)">Travel Authority(Local)</option>
@@ -188,9 +194,9 @@ export default function App() {
 
           {step === 3 && (
             <div style={{ padding: '20px 0', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div style={{ color: '#166534', fontSize: '40px', text_align: 'center' }}>✓</div>
-              <h2 style={{ text_align: 'center' }}>Thank you for answering.</h2>
-              <div style={{ backgroundColor: '#fef08a', padding: '12px', borderRadius: '5px', border: '1px solid #facc15', margin: '10px auto', maxWidth: '300px', text_align: 'center' }}>
+              <div style={{ color: '#166534', fontSize: '40px', textAlign: 'center' }}>✓</div>
+              <h2 style={{ textAlign: 'center' }}>Thank you for answering.</h2>
+              <div style={{ backgroundColor: '#fef08a', padding: '12px', borderRadius: '5px', border: '1px solid #facc15', margin: '10px auto', maxWidth: '300px', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#854d0e', fontWeight: 'bold' }}>Your Tracking Number:</p>
                 <h3 style={{ margin: 0, fontSize: '20px', color: '#1e293b', letterSpacing: '1px' }}>{generatedTracking}</h3>
               </div>
