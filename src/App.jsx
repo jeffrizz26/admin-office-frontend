@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function App() {
   const [view, setView] = useState('form');
@@ -157,6 +157,33 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
+              {/* ===== MGA INAYOS AT IBINALIK NA CONDITIONAL DROP-DOWNS ===== */}
+              
+              {/* A. Para sa Submit Document(s) for Processing */}
+              {formData.purpose === "Submit Document(s) for Processing" && (
+                <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '5px', border: '1px solid #bfdbfe' }}>
+                  <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
+                    <option value="">-- Choose Document --</option>
+                    <option value="Travel Authority (Local)">Travel Authority (Local)</option>
+                    <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
+                    <option value="Permit to Teach">Permit to Teach</option>
+                    <option value="Permit to Study">Permit to Study</option>
+                  </select>
+                </div>
+              )}
+
+              {/* B. Para sa Recieve Documents */}
+              {formData.purpose === "Recieve Documents" && (
+                <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '5px', border: '1px solid #bfdbfe' }}>
+                  <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
+                    <option value="">-- Choose Option --</option>
+                    <option value="Certificate">Certificate</option>
+                    <option value="Research">Research</option>
+                  </select>
+                </div>
+              )}
+
+              {/* C. Para sa Request Document(s) */}
               {formData.purpose === 'Request Document(s)' && (
                 <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '5px', border: '1px solid #bfdbfe' }}>
                   <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
@@ -171,6 +198,19 @@ export default function App() {
                 </div>
               )}
 
+              {/* D. Para sa Others (Magpapakita ng text input) */}
+              {formData.purpose === "Others" && (
+                <input type="text" name="otherSpecify" placeholder="Please specify your purpose" value={formData.otherSpecify} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+              )}
+
+              {/* E. Date Needed Field - Awtomatikong nakatago kapag URGENT ang pinili */}
+              {formData.urgency !== "Urgent" && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <label style={{ fontWeight: 'bold', fontSize: '14px' }}>Date Needed (Optional):</label>
+                  <input type="date" name="dateNeeded" value={formData.dateNeeded} onChange={handleInputChange} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                </div>
+              )}
+
               <button type="submit" style={{ padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>NEXT STEP ➡️</button>
             </form>
           )}
@@ -181,6 +221,7 @@ export default function App() {
               <p><strong>Name:</strong> {formData.firstName} {formData.middleName} {formData.lastName}</p>
               <p><strong>Priority:</strong> {formData.urgency}</p>
               <p><strong>Purpose:</strong> {formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</p>
+              {formData.dateNeeded && <p><strong>Date Needed:</strong> {formData.dateNeeded}</p>}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(1)} style={{ flex: 1, padding: '10px', backgroundColor: '#ccc', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Back</button>
                 <button onClick={saveToDatabase} style={{ flex: 1, padding: '10px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>SUBMIT TRANSACTION</button>
@@ -236,7 +277,7 @@ export default function App() {
           ) : filteredTransactions.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>No transactions under this tab.</p>
           ) : isMobile ? (
-            /* A. MOBILE CARDS VIEW (Awtomatikong lalabas kapag Cellphone ang gamit) */
+            /* A. MOBILE CARDS VIEW */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {filteredTransactions.map((tx) => (
                 <div key={tx._id} style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', borderLeft: `6px solid ${tx.urgency === 'Urgent' && tx.status !== 'Completed' ? '#dc2626' : '#2563eb'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
@@ -249,6 +290,7 @@ export default function App() {
                   <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Pangalan:</strong> {tx.lastName}, {tx.firstName}</p>
                   <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Purpose:</strong> {tx.purpose}</p>
                   {tx.subPurpose && <p style={{ margin: '4px 0', fontSize: '14px', color: '#2563eb' }}><strong>Detail:</strong> {tx.subPurpose}</p>}
+                  {tx.dateNeeded && <p style={{ margin: '4px 0', fontSize: '14px', color: '#4b5563' }}><strong>Date Needed:</strong> {tx.dateNeeded}</p>}
                   
                   <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#4b5563' }}>Status:</span>
@@ -262,7 +304,7 @@ export default function App() {
               ))}
             </div>
           ) : (
-            /* B. DESKTOP TABLE VIEW (Awtomatikong lalabas kapag Laptop o PC ang gamit) */
+            /* B. DESKTOP TABLE VIEW */
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
@@ -272,6 +314,7 @@ export default function App() {
                     <th style={{ padding: '12px' }}>Priority</th>
                     <th style={{ padding: '12px' }}>Purpose</th>
                     <th style={{ padding: '12px' }}>Detail</th>
+                    <th style={{ padding: '12px' }}>Date Needed</th>
                     <th style={{ padding: '12px' }}>Action / Status</th>
                   </tr>
                 </thead>
@@ -285,6 +328,7 @@ export default function App() {
                       </td>
                       <td style={{ padding: '12px' }}>{tx.purpose}</td>
                       <td style={{ padding: '12px', color: '#2563eb' }}>{tx.subPurpose || '-'}</td>
+                      <td style={{ padding: '12px', color: '#4b5563' }}>{tx.dateNeeded || '-'}</td>
                       <td style={{ padding: '12px' }}>
                         <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} style={{ padding: '6px', borderRadius: '5px', border: '1px solid #ccc', fontWeight: 'bold', backgroundColor: tx.status === 'Completed' ? '#dcfce7' : tx.status === 'In Progress' ? '#dbeafe' : '#fef9c3', color: tx.status === 'Completed' ? '#16a34a' : tx.status === 'In Progress' ? '#2563eb' : '#ca8a04' }}>
                           <option value="Pending">🕒 Pending</option>
