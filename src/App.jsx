@@ -4,6 +4,7 @@ export default function App() {
   const [view, setView] = useState('form');
   const [dashboardTab, setDashboardTab] = useState('active'); // 'active' para sa Pending, 'archive' para sa Completed
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); // Estado para sa Admin Live Search
   const [formData, setFormData] = useState({
     firstName: '', middleName: '', lastName: '',
     purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '',
@@ -102,12 +103,14 @@ export default function App() {
     }
   };
 
+  // Live filtering base sa Tab (Active/Archive) at sa Search Bar input
   const filteredTransactions = transactions.filter(tx => {
-    if (dashboardTab === 'active') {
-      return tx.status !== 'Completed';
-    } else {
-      return tx.status === 'Completed';
-    }
+    const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
+    
+    const searchString = `${tx.trackingNumber} ${tx.firstName} ${tx.lastName} ${tx.purpose} ${tx.subPurpose || ''}`.toLowerCase();
+    const matchesSearch = searchString.includes(searchTerm.toLowerCase());
+    
+    return matchesTab && matchesSearch;
   });
 
   const handleAdminLogin = (e) => {
@@ -157,11 +160,10 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
-              {/* ===== MGA INAYOS AT IBINALIK NA CONDITIONAL DROP-DOWNS ===== */}
-              
               {/* A. Para sa Submit Document(s) for Processing */}
               {formData.purpose === "Submit Document(s) for Processing" && (
                 <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '5px', border: '1px solid #bfdbfe' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold', color: '#1e40af' }}>Select Document to Process:</label>
                   <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
                     <option value="">-- Choose Document --</option>
                     <option value="Travel Authority (Local)">Travel Authority (Local)</option>
@@ -172,14 +174,22 @@ export default function App() {
                 </div>
               )}
 
-              {/* B. Para sa Recieve Documents */}
+              {/* B. Para sa Recieve Documents (Automated Tracking Field) */}
               {formData.purpose === "Recieve Documents" && (
-                <div style={{ backgroundColor: '#eff6ff', padding: '15px', borderRadius: '5px', border: '1px solid #bfdbfe' }}>
-                  <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
-                    <option value="">-- Choose Option --</option>
-                    <option value="Certificate">Certificate</option>
-                    <option value="Research">Research</option>
-                  </select>
+                <div style={{ backgroundColor: '#fef9c3', padding: '15px', borderRadius: '5px', border: '1px solid #fef08a' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold', color: '#854d0e' }}>Enter Document Tracking Number to Claim:</label>
+                  <input 
+                    type="text" 
+                    name="subPurpose" 
+                    placeholder="e.g., TXN-2026-XXXX" 
+                    value={formData.subPurpose} 
+                    onChange={handleInputChange} 
+                    required 
+                    style={{ padding: '10px', width: '95%', borderRadius: '5px', border: '1px solid #ca8a04', textTransform: 'uppercase' }}
+                  />
+                  <small style={{ color: '#854d0e', display: 'block', marginTop: '5px', fontSize: '11px' }}>
+                    💡 I-type ang tracking number na nakuha noong ikaw ay nag-submit.
+                  </small>
                 </div>
               )}
 
@@ -198,12 +208,12 @@ export default function App() {
                 </div>
               )}
 
-              {/* D. Para sa Others (Magpapakita ng text input) */}
+              {/* D. Para sa Others */}
               {formData.purpose === "Others" && (
                 <input type="text" name="otherSpecify" placeholder="Please specify your purpose" value={formData.otherSpecify} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
               )}
 
-              {/* E. Date Needed Field - Awtomatikong nakatago kapag URGENT ang pinili */}
+              {/* E. Date Needed Field - Nakatago kapag URGENT */}
               {formData.urgency !== "Urgent" && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   <label style={{ fontWeight: 'bold', fontSize: '14px' }}>Date Needed (Optional):</label>
@@ -262,6 +272,17 @@ export default function App() {
             <button onClick={() => setView('form')} style={{ width: isMobile ? '100%' : 'auto', padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Lock Dashboard</button>
           </div>
 
+          {/* NEW LIVE SEARCH FILTER BAR BAR FOR ADMIN */}
+          <div style={{ marginBottom: '20px' }}>
+            <input 
+              type="text" 
+              placeholder="🔍 Mag-hanap gamit ang Pangalan, Tracking No, o Pakay..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '11px', boxSizing: 'border-box', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}
+            />
+          </div>
+
           {/* Filter Tabs */}
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px', marginBottom: '20px' }}>
             <button onClick={() => setDashboardTab('active')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: '13px' }}>
@@ -275,7 +296,7 @@ export default function App() {
           {loading ? (
             <p style={{ textAlign: 'center' }}>Loading log details...</p>
           ) : filteredTransactions.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>No transactions under this tab.</p>
+            <p style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>No matching transactions found.</p>
           ) : isMobile ? (
             /* A. MOBILE CARDS VIEW */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
