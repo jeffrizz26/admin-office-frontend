@@ -246,7 +246,7 @@ export default function App() {
                 <option value="File Form 6">File Form 6</option>
                 <option value="Request Document(s)">Request Document(s)</option>
                 <option value="Submit Document(s) for Processing">Submit Document(s) for Processing</option>
-                <option value="Recieve Documents">Recieve Documents</option>
+                <option value="Recieve Document(s)">Recieve Documents</option>
                 <option value="Request Supply / Equipment">Request Supply / Equipment</option>
                 <option value="Request for Fund (Canteen)">Request for Fund (Canteen)</option>
                 <option value="Others">Others</option>
