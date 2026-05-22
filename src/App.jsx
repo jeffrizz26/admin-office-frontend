@@ -24,7 +24,7 @@ export default function App() {
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
   const [isMobile, setIsMobile] = useState(false);
 
-  const BACKEND_URL = 'https://admin-office-backend.vercel.app'; // <--- PALITAN MO ITO NG TUNAY MONG LINK
+  const BACKEND_URL = 'https://admin-office-backend.vercel.app'; // <--- PALITAN MO ITO NG TUNAY MONG LINK KUNG SAKALI
 
   useEffect(() => {
     if (view !== 'dashboard') { 
@@ -43,7 +43,6 @@ export default function App() {
         if (result.success) {
           setTransactions(result.data);
         } else {
-          // Kung na-unauthorized (ibig sabihin pinalitan ang pin sa ibang device), ilogout sya
           localStorage.removeItem('active_session_pin');
           setSessionPin('');
           setView('login');
@@ -368,31 +367,64 @@ export default function App() {
             <p style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>No transactions found.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              {/* Desktop and Mobile viewing modes inside the table component logic remain clean */}
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
-                    <th style={{ padding: '12px' }}>Tracking No.</th>
-                    <th style={{ padding: '12px' }}>Pangalan</th>
-                    <th style={{ padding: '12px' }}>Purpose</th>
-                    <th style={{ padding: '12px' }}>Action / Status</th>
+                    <th style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Tracking No.</th>
+                    <th style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Pangalan</th>
+                    {!isMobile && <th style={{ padding: '12px' }}>Purpose</th>}
+                    {!isMobile && <th style={{ padding: '12px' }}>Oras/Petsa</th>}
+                    <th style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Action / Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.map((tx) => (
-                    <tr key={tx._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{tx.trackingNumber}</td>
-                      <td style={{ padding: '12px' }}>{tx.lastName}, {tx.firstName}</td>
-                      <td style={{ padding: '12px' }}>{tx.purpose}</td>
-                      <td style={{ padding: '12px' }}>
-                        <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} style={{ padding: '6px', borderRadius: '5px' }}>
-                          <option value="Pending">🕒 Pending</option>
-                          <option value="In Progress">⚙️ In Progress</option>
-                          <option value="Completed">✅ Completed</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredTransactions.map((tx) => {
+                    const orasFormat = tx.createdAt 
+                      ? new Date(tx.createdAt).toLocaleString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          hour: '2-digit', 
+                          minute: '2-digit',
+                          hour12: true 
+                        }) 
+                      : '---';
+
+                    return (
+                      <tr key={tx._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <td style={{ padding: isMobile ? '8px' : '12px', fontWeight: 'bold', fontSize: isMobile ? '12px' : '14px' }}>
+                          {tx.trackingNumber}
+                        </td>
+                        <td style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>
+                          <div>{tx.lastName}, {tx.firstName}</div>
+                          {isMobile && (
+                            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', lineHeight: '1.3' }}>
+                              <strong>📌 Layunin:</strong> {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}<br />
+                              <strong>🕒 Oras:</strong> {orasFormat}
+                            </div>
+                          )}
+                        </td>
+                        {!isMobile && <td style={{ padding: '12px' }}>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</td>}
+                        {!isMobile && <td style={{ padding: '12px', color: '#4b5563' }}>{orasFormat}</td>}
+                        <td style={{ padding: isMobile ? '8px' : '12px' }}>
+                          <select 
+                            value={tx.status || 'Pending'} 
+                            onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
+                            style={{ 
+                              padding: isMobile ? '4px' : '6px', 
+                              borderRadius: '5px', 
+                              fontSize: isMobile ? '11px' : '13px',
+                              width: '100%',
+                              maxWidth: isMobile ? '100px' : '140px'
+                            }}
+                          >
+                            <option value="Pending">🕒 Pending</option>
+                            <option value="In Progress">⚙️ In Progress</option>
+                            <option value="Completed">✅ Completed</option>
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
