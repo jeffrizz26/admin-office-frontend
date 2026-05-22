@@ -15,7 +15,6 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Isesave natin ang active session PIN sa localStorage para hindi laging nag-lologin kapag nag-refresh
   const [sessionPin, setSessionPin] = useState(() => {
     return localStorage.getItem('active_session_pin') || '';
   });
@@ -24,7 +23,7 @@ export default function App() {
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
   const [isMobile, setIsMobile] = useState(false);
 
-  const BACKEND_URL = 'https://admin-office-backend.vercel.app';
+  const BACKEND_URL = 'https://admin-office-backend.vercel.app'; 
 
   useEffect(() => {
     if (view !== 'dashboard') { 
@@ -217,7 +216,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: isMobile ? '10px' : '20px' }}>
+    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: isMobile ? '8px' : '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
         <button onClick={() => setView('form')} style={{ flex: isMobile ? 1 : 'initial', padding: '10px 15px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px' }}>📄 Form</button>
         <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} style={{ flex: isMobile ? 1 : 'initial', padding: '10px 15px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px' }}>📊 Dashboard</button>
@@ -331,13 +330,13 @@ export default function App() {
       )}
 
       {view === 'dashboard' && (
-        <div style={{ backgroundColor: 'white', padding: isMobile ? '15px' : '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '15px', marginBottom: '20px' }}>
+        <div style={{ backgroundColor: 'white', padding: isMobile ? '10px' : '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '12px', marginBottom: '20px' }}>
             <h2 style={{ margin: '0', fontSize: isMobile ? '18px' : '24px' }}>Office Dashboard</h2>
-            <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto', flexDirection: isMobile ? 'column' : 'row' }}>
-              <button onClick={() => setShowPinModal(true)} style={{ padding: '8px 15px', backgroundColor: '#e2e8f0', color: '#334155', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔑 Change PIN</button>
-              <button onClick={exportToCSV} style={{ padding: '8px 15px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>📥 Export to CSV</button>
-              <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} style={{ padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Logout</button>
+            <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto', flexDirection: isMobile ? 'row' : 'row', flexWrap: 'wrap' }}>
+              <button onClick={() => setShowPinModal(true)} style={{ flex: isMobile ? 1 : 'initial', padding: '8px 12px', backgroundColor: '#e2e8f0', color: '#334155', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '12px' : '14px' }}>🔑 PIN</button>
+              <button onClick={exportToCSV} style={{ flex: isMobile ? 1 : 'initial', padding: '8px 12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '12px' : '14px' }}>📥 CSV</button>
+              <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} style={{ flex: isMobile ? 1 : 'initial', padding: '8px 12px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '12px' : '14px' }}>🔒 Logout</button>
             </div>
           </div>
 
@@ -345,11 +344,11 @@ export default function App() {
             <input type="text" placeholder="🔍 Mag-hanap..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '11px', boxSizing: 'border-box', borderRadius: '6px', border: '1px solid #cbd5e1' }}/>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px', marginBottom: '20px' }}>
-            <button onClick={() => setDashboardTab('active')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginBottom: '20px' }}>
+            <button onClick={() => setDashboardTab('active')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px' }}>
               Active ({transactions.filter(t => t.status !== 'Completed').length})
             </button>
-            <button onClick={() => setDashboardTab('archive')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'archive' ? '#4b5563' : '#f3f4f6', color: dashboardTab === 'archive' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>
+            <button onClick={() => setDashboardTab('archive')} style={{ flex: 1, padding: '10px', cursor: 'pointer', backgroundColor: dashboardTab === 'archive' ? '#4b5563' : '#f3f4f6', color: dashboardTab === 'archive' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px' }}>
               Archives ({transactions.filter(t => t.status === 'Completed').length})
             </button>
           </div>
@@ -363,11 +362,11 @@ export default function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
-                    <th style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Tracking No.</th>
-                    <th style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Pangalan</th>
+                    <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? '95px' : 'auto' }}>Tracking No.</th>
+                    <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Detalye ng Transaksyon</th>
                     {!isMobile && <th style={{ padding: '12px' }}>Purpose</th>}
                     {!isMobile && <th style={{ padding: '12px' }}>Oras/Petsa</th>}
-                    <th style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Action / Status</th>
+                    {!isMobile && <th style={{ padding: '12px' }}>Action / Status</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -382,39 +381,72 @@ export default function App() {
                         }) 
                       : '---';
 
+                    const isStatusCompleted = tx.status === 'Completed';
+
                     return (
                       <tr key={tx._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                        <td style={{ padding: isMobile ? '8px' : '12px', fontWeight: 'bold', fontSize: isMobile ? '12px' : '14px' }}>
-                          {tx.trackingNumber}
+                        <td style={{ padding: isMobile ? '12px 6px' : '12px', fontWeight: 'bold', fontSize: isMobile ? '11px' : '14px', verticalAlign: 'top' }}>
+                          <span style={{ backgroundColor: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', display: 'inline-block' }}>
+                            {tx.trackingNumber}
+                          </span>
                         </td>
-                        <td style={{ padding: isMobile ? '8px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>
-                          <div>{tx.lastName}, {tx.firstName}</div>
-                          {isMobile && (
-                            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', lineHeight: '1.3' }}>
-                              <strong>📌 Layunin:</strong> {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}<br />
-                              <strong>🕒 Oras:</strong> {orasFormat}
+                        <td style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '13px' : '14px', verticalAlign: 'top' }}>
+                          <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{tx.lastName}, {tx.firstName}</div>
+                          
+                          {/* Kapag Mobile layout, dito natin ibababa lahat para maluwag at madaling basahin */}
+                          {isMobile ? (
+                            <div style={{ fontSize: '12px', color: '#475569', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div><strong>📌 Layunin:</strong> {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
+                              <div><strong>🕒 Oras:</strong> {orasFormat}</div>
+                              
+                              {/* DITO NATIN NILAGAY ANG STATUS SELECTOR PARA SA MOBILE */}
+                              <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <strong>⚡ Status:</strong>
+                                <select 
+                                  value={tx.status || 'Pending'} 
+                                  onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
+                                  style={{ 
+                                    padding: '5px 8px', 
+                                    borderRadius: '6px', 
+                                    fontSize: '12px',
+                                    fontWeight: 'bold',
+                                    backgroundColor: isStatusCompleted ? '#dcfce7' : '#fef3c7',
+                                    color: isStatusCompleted ? '#166534' : '#92400e',
+                                    border: '1px solid #cbd5e1',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <option value="Pending">🕒 Pending</option>
+                                  <option value="In Progress">⚙️ In Progress</option>
+                                  <option value="Completed">✅ Completed</option>
+                                </select>
+                              </div>
                             </div>
-                          )}
+                          ) : null}
                         </td>
-                        {!isMobile && <td style={{ padding: '12px' }}>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</td>}
-                        {!isMobile && <td style={{ padding: '12px', color: '#4b5563' }}>{orasFormat}</td>}
-                        <td style={{ padding: isMobile ? '8px' : '12px' }}>
-                          <select 
-                            value={tx.status || 'Pending'} 
-                            onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            style={{ 
-                              padding: isMobile ? '4px' : '6px', 
-                              borderRadius: '5px', 
-                              fontSize: isMobile ? '11px' : '13px',
-                              width: '100%',
-                              maxWidth: isMobile ? '100px' : '140px'
-                            }}
-                          >
-                            <option value="Pending">🕒 Pending</option>
-                            <option value="In Progress">⚙️ In Progress</option>
-                            <option value="Completed">✅ Completed</option>
-                          </select>
-                        </td>
+                        
+                        {/* Desktop Only Columns */}
+                        {!isMobile && <td style={{ padding: '12px', verticalAlign: 'middle' }}>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</td>}
+                        {!isMobile && <td style={{ padding: '12px', color: '#4b5563', verticalAlign: 'middle' }}>{orasFormat}</td>}
+                        {!isMobile && (
+                          <td style={{ padding: '12px', verticalAlign: 'middle' }}>
+                            <select 
+                              value={tx.status || 'Pending'} 
+                              onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
+                              style={{ 
+                                padding: '6px', 
+                                borderRadius: '5px', 
+                                fontSize: '13px',
+                                width: '100%',
+                                maxWidth: '140px'
+                              }}
+                            >
+                              <option value="Pending">🕒 Pending</option>
+                              <option value="In Progress">⚙️ In Progress</option>
+                              <option value="Completed">✅ Completed</option>
+                            </select>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
