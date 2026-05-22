@@ -22,9 +22,20 @@ export default function App() {
   const ADMIN_SECRET_PASSWORD = '1234';
 
   useEffect(() => {
+    // 🔒 HARANG AT SECURITY: Huwag mag-fetch ng data kung hindi naka-display ang dashboard!
+    if (view !== 'dashboard') { 
+      setLoading(false); 
+      return; 
+    } 
+
     const fetchTransactions = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/transactions`);
+        // 🛡️ Nagpadala tayo ng Secure Authorization Header para harangan ang mga hacker sa Backend
+        const response = await fetch(`${BACKEND_URL}/api/transactions`, {
+          headers: {
+            'Authorization': `Bearer ${ADMIN_SECRET_PASSWORD}`
+          }
+        });
         const result = await response.json();
         if (result.success) setTransactions(result.data);
       } catch (error) {
@@ -46,7 +57,7 @@ export default function App() {
       clearInterval(interval);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [view]); // 🔄 Re-run ang effect sa tuwing nagpapalit ang view (Form -> Login -> Dashboard)
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -64,6 +75,7 @@ export default function App() {
 
   const saveToDatabase = async () => {
     try {
+      // 💡 HINDI natin nilagyan ng Authorization header dito para makapag-submit pa rin ang publiko kahit walang PIN
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,9 +98,13 @@ export default function App() {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
+      // 🛡️ Nilagyan din ng Secure Header para walang makialam sa status ng mga dokumento ninyo
       const response = await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ADMIN_SECRET_PASSWORD}`
+        },
         body: JSON.stringify({ status: newStatus })
       });
       const result = await response.json();
@@ -107,7 +123,7 @@ export default function App() {
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
     
-    const searchString = `${tx.trackingNumber} ${tx.firstName} ${tx.lastName} ${tx.purpose} ${tx.subPurpose || ''}`.toLowerCase();
+    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.subPurpose || ''}`.toLowerCase();
     const matchesSearch = searchString.includes(searchTerm.toLowerCase());
     
     return matchesTab && matchesSearch;
@@ -116,6 +132,7 @@ export default function App() {
   const handleAdminLogin = (e) => {
     e.preventDefault();
     if (adminPasswordInput === ADMIN_SECRET_PASSWORD) {
+      setLoading(true); // I-set ang loading bago lumipat para malinis tingnan
       setView('dashboard');
       setAdminPasswordInput('');
     } else {
@@ -253,6 +270,7 @@ export default function App() {
         </div>
       )}
 
+      {/* 2. ADMIN LOGIN VIEW */}
       {view === 'login' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '350px', margin: '0 auto', textAlign: 'center' }}>
           <h2>Admin Login</h2>
@@ -269,10 +287,10 @@ export default function App() {
         <div style={{ backgroundColor: 'white', padding: isMobile ? '15px' : '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '15px', marginBottom: '20px' }}>
             <h2 style={{ margin: '0', fontSize: isMobile ? '18px' : '24px' }}>Office Dashboard</h2>
-            <button onClick={() => setView('form')} style={{ width: isMobile ? '100%' : 'auto', padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Lock Dashboard</button>
+            <button onClick={() => { setView('form'); setTransactions([]); }} style={{ width: isMobile ? '100%' : 'auto', padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🔒 Lock Dashboard</button>
           </div>
 
-          {/* NEW LIVE SEARCH FILTER BAR BAR FOR ADMIN */}
+          {/* NEW LIVE SEARCH FILTER BAR FOR ADMIN */}
           <div style={{ marginBottom: '20px' }}>
             <input 
               type="text" 
