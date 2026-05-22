@@ -359,14 +359,13 @@ export default function App() {
             <p style={{ textAlign: 'center', color: '#6b7280', padding: '20px' }}>No transactions found.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', tableLayout: 'fixed' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
-                    <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? '85px' : 'auto' }}>Tracking No.</th>
-                    <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Detalye ng Transaksyon</th>
-                    {!isMobile && <th style={{ padding: '12px' }}>Purpose</th>}
-                    {!isMobile && <th style={{ padding: '12px' }}>Oras/Petsa</th>}
-                    {!isMobile && <th style={{ padding: '12px' }}>Action / Status</th>}
+                    <th style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? '105px' : '20%' }}>Tracking No.</th>
+                    <th style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? 'auto' : '45%' }}>Detalye ng Transaksyon</th>
+                    {!isMobile && <th style={{ padding: '12px', width: '20%' }}>Oras/Petsa</th>}
+                    <th style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? '100px' : '15%', textAlign: isMobile ? 'right' : 'left' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -385,78 +384,56 @@ export default function App() {
 
                     return (
                       <tr key={tx._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                        <td style={{ padding: isMobile ? '12px 6px' : '12px', fontWeight: 'bold', fontSize: isMobile ? '11px' : '14px', verticalAlign: 'top' }}>
-                          <span style={{ backgroundColor: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', display: 'inline-block' }}>
+                        {/* SECTION 1: Tracking Number */}
+                        <td style={{ padding: isMobile ? '12px 6px' : '12px', fontWeight: 'bold', fontSize: isMobile ? '11px' : '14px', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
+                          <span style={{ backgroundColor: '#f1f5f9', padding: '3px 6px', borderRadius: '4px', display: 'inline-block' }}>
                             {tx.trackingNumber}
                           </span>
                         </td>
-                        <td style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '13px' : '14px', verticalAlign: 'top' }}>
-                          
-                          {/* 🌟 SPLIT SCREEN GRID PARA SA MOBILE LAYOUT 🌟 */}
-                          {isMobile ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', alignItems: 'start' }}>
-                              
-                              {/* KALIWANG BAHAGI: Pangalan, Layunin, Oras */}
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: '#475569' }}>
-                                <div style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '13px' }}>{tx.lastName}, {tx.firstName}</div>
-                                <div><strong>📌 Layunin:</strong> {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
-                                <div><strong>🕒 Oras:</strong> {orasFormat}</div>
-                              </div>
-                              
-                              {/* KANANG BAHAGI: Status Selector (Ganap na Naka-align sa kanan) */}
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', height: '100%' }}>
-                                <select 
-                                  value={tx.status || 'Pending'} 
-                                  onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                                  style={{ 
-                                    padding: '6px 8px', 
-                                    borderRadius: '6px', 
-                                    fontSize: '11px',
-                                    fontWeight: 'bold',
-                                    backgroundColor: isStatusCompleted ? '#dcfce7' : '#fef3c7',
-                                    color: isStatusCompleted ? '#166534' : '#92400e',
-                                    border: '1px solid #cbd5e1',
-                                    cursor: 'pointer',
-                                    width: '100%',
-                                    maxWidth: '110px',
-                                    textAlign: 'center'
-                                  }}
-                                >
-                                  <option value="Pending">🕒 Pending</option>
-                                  <option value="In Progress">⚙️ Progress</option>
-                                  <option value="Completed">✅ Done</option>
-                                </select>
-                              </div>
 
+                        {/* SECTION 2: Detalye ng Transaksyon (Pangalan, Layunin, at Oras para sa Mobile) */}
+                        <td style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', verticalAlign: 'top' }}>
+                          <div style={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '4px', fontSize: isMobile ? '13px' : '14px' }}>
+                            {tx.lastName}, {tx.firstName}
+                          </div>
+                          
+                          {isMobile ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', color: '#475569' }}>
+                              <div>📌 {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
+                              <div style={{ fontSize: '11px', color: '#64748b' }}>🕒 {orasFormat}</div>
                             </div>
                           ) : (
-                            /* Desktop view lang ito ng Pangalan */
-                            <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{tx.lastName}, {tx.firstName}</div>
+                            <span style={{ color: '#475569' }}>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
                           )}
                         </td>
                         
                         {/* Desktop Only Columns */}
-                        {!isMobile && <td style={{ padding: '12px', verticalAlign: 'middle' }}>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</td>}
-                        {!isMobile && <td style={{ padding: '12px', color: '#4b5563', verticalAlign: 'middle' }}>{orasFormat}</td>}
-                        {!isMobile && (
-                          <td style={{ padding: '12px', verticalAlign: 'middle' }}>
-                            <select 
-                              value={tx.status || 'Pending'} 
-                              onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                              style={{ 
-                                padding: '6px', 
-                                borderRadius: '5px', 
-                                fontSize: '13px',
-                                width: '100%',
-                                maxWidth: '140px'
-                              }}
-                            >
-                              <option value="Pending">🕒 Pending</option>
-                              <option value="In Progress">⚙️ In Progress</option>
-                              <option value="Completed">✅ Completed</option>
-                            </select>
-                          </td>
-                        )}
+                        {!isMobile && <td style={{ padding: '12px', color: '#4b5563', verticalAlign: 'top' }}>{orasFormat}</td>}
+                        
+                        {/* SECTION 3: Action / Status Dropdown (Naka-usog sa kanan para maluwag) */}
+                        <td style={{ padding: isMobile ? '12px 6px' : '12px', verticalAlign: 'top', textAlign: 'right' }}>
+                          <select 
+                            value={tx.status || 'Pending'} 
+                            onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
+                            style={{ 
+                              padding: '6px 4px', 
+                              borderRadius: '6px', 
+                              fontSize: isMobile ? '11px' : '13px',
+                              fontWeight: 'bold',
+                              backgroundColor: isStatusCompleted ? '#dcfce7' : '#fef3c7',
+                              color: isStatusCompleted ? '#166534' : '#92400e',
+                              border: '1px solid #cbd5e1',
+                              cursor: 'pointer',
+                              width: '100%',
+                              maxWidth: isMobile ? '90px' : '140px',
+                              textAlign: 'center'
+                            }}
+                          >
+                            <option value="Pending">🕒 Pending</option>
+                            <option value="In Progress">⚙️ Progress</option>
+                            <option value="Completed">✅ Done</option>
+                          </select>
+                        </td>
                       </tr>
                     );
                   })}
