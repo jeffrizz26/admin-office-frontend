@@ -333,7 +333,7 @@ export default function App() {
         <div style={{ backgroundColor: 'white', padding: isMobile ? '10px' : '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '12px', marginBottom: '20px' }}>
             <h2 style={{ margin: '0', fontSize: isMobile ? '18px' : '24px' }}>Office Dashboard</h2>
-            <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto', flexDirection: isMobile ? 'row' : 'row', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto', flexDirection: 'row', flexWrap: 'wrap' }}>
               <button onClick={() => setShowPinModal(true)} style={{ flex: isMobile ? 1 : 'initial', padding: '8px 12px', backgroundColor: '#e2e8f0', color: '#334155', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '12px' : '14px' }}>🔑 PIN</button>
               <button onClick={exportToCSV} style={{ flex: isMobile ? 1 : 'initial', padding: '8px 12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '12px' : '14px' }}>📥 CSV</button>
               <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} style={{ flex: isMobile ? 1 : 'initial', padding: '8px 12px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? '12px' : '14px' }}>🔒 Logout</button>
@@ -362,7 +362,7 @@ export default function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #e5e7eb' }}>
-                    <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? '95px' : 'auto' }}>Tracking No.</th>
+                    <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px', width: isMobile ? '85px' : 'auto' }}>Tracking No.</th>
                     <th style={{ padding: isMobile ? '10px 6px' : '12px', fontSize: isMobile ? '12px' : '14px' }}>Detalye ng Transaksyon</th>
                     {!isMobile && <th style={{ padding: '12px' }}>Purpose</th>}
                     {!isMobile && <th style={{ padding: '12px' }}>Oras/Petsa</th>}
@@ -391,38 +391,48 @@ export default function App() {
                           </span>
                         </td>
                         <td style={{ padding: isMobile ? '12px 6px' : '12px', fontSize: isMobile ? '13px' : '14px', verticalAlign: 'top' }}>
-                          <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{tx.lastName}, {tx.firstName}</div>
                           
-                          {/* Kapag Mobile layout, dito natin ibababa lahat para maluwag at madaling basahin */}
+                          {/* 🌟 SPLIT SCREEN GRID PARA SA MOBILE LAYOUT 🌟 */}
                           {isMobile ? (
-                            <div style={{ fontSize: '12px', color: '#475569', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <div><strong>📌 Layunin:</strong> {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
-                              <div><strong>🕒 Oras:</strong> {orasFormat}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', alignItems: 'start' }}>
                               
-                              {/* DITO NATIN NILAGAY ANG STATUS SELECTOR PARA SA MOBILE */}
-                              <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <strong>⚡ Status:</strong>
+                              {/* KALIWANG BAHAGI: Pangalan, Layunin, Oras */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: '#475569' }}>
+                                <div style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '13px' }}>{tx.lastName}, {tx.firstName}</div>
+                                <div><strong>📌 Layunin:</strong> {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
+                                <div><strong>🕒 Oras:</strong> {orasFormat}</div>
+                              </div>
+                              
+                              {/* KANANG BAHAGI: Status Selector (Ganap na Naka-align sa kanan) */}
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', height: '100%' }}>
                                 <select 
                                   value={tx.status || 'Pending'} 
                                   onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
                                   style={{ 
-                                    padding: '5px 8px', 
+                                    padding: '6px 8px', 
                                     borderRadius: '6px', 
-                                    fontSize: '12px',
+                                    fontSize: '11px',
                                     fontWeight: 'bold',
                                     backgroundColor: isStatusCompleted ? '#dcfce7' : '#fef3c7',
                                     color: isStatusCompleted ? '#166534' : '#92400e',
                                     border: '1px solid #cbd5e1',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    width: '100%',
+                                    maxWidth: '110px',
+                                    textAlign: 'center'
                                   }}
                                 >
                                   <option value="Pending">🕒 Pending</option>
-                                  <option value="In Progress">⚙️ In Progress</option>
-                                  <option value="Completed">✅ Completed</option>
+                                  <option value="In Progress">⚙️ Progress</option>
+                                  <option value="Completed">✅ Done</option>
                                 </select>
                               </div>
+
                             </div>
-                          ) : null}
+                          ) : (
+                            /* Desktop view lang ito ng Pangalan */
+                            <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{tx.lastName}, {tx.firstName}</div>
+                          )}
                         </td>
                         
                         {/* Desktop Only Columns */}
