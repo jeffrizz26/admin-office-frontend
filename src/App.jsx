@@ -265,7 +265,7 @@ export default function App() {
                 </div>
               )}
 
-              {formData.purpose === "Recieve Documents" && (
+              {formData.purpose === "Recieve Document(s)" && (
                 <div style={{ backgroundColor: '#fef9c3', padding: '15px', borderRadius: '5px', border: '1px solid #fef08a' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 'bold', color: '#854d0e' }}>Enter Document Tracking Number to Claim:</label>
                   <input type="text" name="subPurpose" placeholder="e.g., TXN-2026-XXXX" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '10px', width: '95%', borderRadius: '5px', border: '1px solid #ca8a04', textTransform: 'uppercase' }}/>
