@@ -15,7 +15,6 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Isesave natin ang active session PIN sa localStorage para hindi laging nag-lologin kapag nag-refresh
   const [sessionPin, setSessionPin] = useState(() => {
     return localStorage.getItem('active_session_pin') || '';
   });
@@ -43,7 +42,6 @@ export default function App() {
         if (result.success) {
           setTransactions(result.data);
         } else {
-          // Kung na-unauthorized (ibig sabihin pinalitan ang pin sa ibang device), ilogout sya
           localStorage.removeItem('active_session_pin');
           setSessionPin('');
           setView('login');
@@ -231,3 +229,5 @@ export default function App() {
               <h2 style={{ textAlign: 'center', margin: '0 0 5px 0', fontSize: isMobile ? '20px' : '24px' }}>Admin Office Transaction</h2>
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
+              <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
+
