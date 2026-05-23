@@ -252,7 +252,7 @@ export default function App() {
               )}
 
               {/* DITO ANG PAGBABAGO: Nilagyan ng mt-4 at pinalaki nang konti ang font */}
-              <div className="flex flex-col gap-1.5 relative mt-4">
+              <div className="flex flex-col gap-1.5 relative mt-3">
                 <label className="font-bold text-[13px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
