@@ -218,7 +218,8 @@ export default function App() {
                 </div>
               </div>
 
-              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+              {/* MODIFIED: Added arrow control for purpose */}
+              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                 <option value="">-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
                 <option value="Sign DTR/Summary of Absences">Sign DTR/Summary of Absences</option>
@@ -230,8 +231,9 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
+              {/* MODIFIED: Added arrow control for subPurpose (Process) */}
               {formData.purpose === "Submit Document(s) for Processing" && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
                   <option value="Travel Authority (Local)">Travel Authority (Local)</option>
                   <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
@@ -239,8 +241,9 @@ export default function App() {
                 </select>
               )}
 
+              {/* MODIFIED: Added arrow control for subPurpose (Request) */}
               {formData.purpose === 'Request Document(s)' && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
