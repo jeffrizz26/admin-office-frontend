@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function App() {
-  const [view, setView] = useState('form'); // Default ay 'form'
+  const [view, setView] = useState('form');
   const [dashboardTab, setDashboardTab] = useState('active'); 
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [searchTerm, setSearchTerm] = useState(''); 
@@ -218,6 +218,7 @@ export default function App() {
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
               </div>
+              
               <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                 <option value="">-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
@@ -229,6 +230,23 @@ export default function App() {
                 <option value="Request Supply / Equipment">Request Supply / Equipment</option>
                 <option value="Others">Others</option>
               </select>
+
+              {/* FORM 6 CONDITIONAL RENDERING */}
+              {formData.purpose === "File Form 6" && (
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2 animate-fadeIn">
+                  <h3 className="text-blue-800 font-bold text-sm mb-3">📋 Form 6 Details</h3>
+                  <p className="text-xs text-blue-600 mb-2">Mangyaring ilagay ang detalye para sa Form 6:</p>
+                  <textarea 
+                    name="otherSpecify" 
+                    placeholder="Ilagay dito ang detalye ng Form 6..." 
+                    value={formData.otherSpecify} 
+                    onChange={handleInputChange} 
+                    required 
+                    className="w-full p-3 text-sm rounded-lg border border-blue-200 focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[100px]"
+                  />
+                </div>
+              )}
+
               {formData.purpose === "Submit Document(s) for Processing" && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
@@ -268,6 +286,13 @@ export default function App() {
               <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
                 <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
                 <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</span></p>
+                {/* Ipinapakita rin natin dito ang nilagay nilang Form 6 details bago mag submit */}
+                {formData.purpose === "File Form 6" && (
+                  <p className="text-slate-600"><strong>Form 6 Details:</strong> <span className="text-slate-900 font-medium">{formData.otherSpecify}</span></p>
+                )}
+                {formData.purpose === "Others" && (
+                  <p className="text-slate-600"><strong>Specified:</strong> <span className="text-slate-900 font-medium">{formData.otherSpecify}</span></p>
+                )}
                 <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
               </div>
               <div className="flex gap-3 mt-1">
@@ -341,7 +366,7 @@ export default function App() {
                         <td className="px-6 py-4 align-middle"><span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-md font-mono font-bold text-[13px] border border-slate-200 shadow-sm">{tx.trackingNumber}</span></td>
                         <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
-                          <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5"><span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span></div>
+                          <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5"><span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''} {tx.purpose === 'File Form 6' && ` - ${tx.otherSpecify}`}</span></div>
                           <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5"><span className="font-medium text-slate-400">Assisted by:</span> <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium border border-slate-200/60">{tx.assistedBy || 'None'}</span></div>
                         </td>
                         <td className="px-6 py-4 align-middle text-slate-500 text-[13.5px] font-medium">{orasFormat}</td>
