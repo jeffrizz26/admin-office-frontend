@@ -179,14 +179,13 @@ export default function App() {
     name.toLowerCase().includes(formData.assistedBy.toLowerCase())
   );
 
-  // Helper Function para sa Dynamic Premium Colors ng Status Dropdown
   const getStatusDropdownClass = (status) => {
     switch (status) {
       case 'In Progress':
         return 'bg-blue-50 text-blue-700 border-blue-200 focus:ring-blue-400';
       case 'Completed':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200 focus:ring-emerald-400';
-      default: // Pending
+      default: 
         return 'bg-amber-50 text-amber-700 border-amber-200 focus:ring-amber-400';
     }
   };
@@ -204,7 +203,7 @@ export default function App() {
       {view === 'form' && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[460px] mx-auto">
           {step === 1 && (
-            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4.5">
+            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-5">
               <h2 className="text-center text-xl font-bold text-slate-800 mb-1">Admin Office Transaction</h2>
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
@@ -231,7 +230,7 @@ export default function App() {
               </select>
 
               {formData.purpose === "Submit Document(s) for Processing" && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
                   <option value="">-- Choose Document --</option>
                   <option value="Travel Authority (Local)">Travel Authority (Local)</option>
                   <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
@@ -240,7 +239,7 @@ export default function App() {
               )}
 
               {formData.purpose === 'Request Document(s)' && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
                   <option value="">-- Choose Document --</option>
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
@@ -249,16 +248,16 @@ export default function App() {
               )}
 
               {formData.purpose === "Others" && (
-                <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200" />
+                <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
               )}
 
-              {/* Tailwind Custom Dropdown */}
-              <div className="flex flex-col gap-1.5 relative">
-                <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
+              {/* DITO ANG PAGBABAGO: Nilagyan ng mt-4 at pinalaki nang konti ang font */}
+              <div className="flex flex-col gap-1.5 relative mt-4">
+                <label className="font-bold text-[13px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
                   onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
-                  className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 
+                  className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs" 
                 />
                 
                 {showStaffDropdown && filteredAssistants.length > 0 && (
@@ -344,7 +343,6 @@ export default function App() {
           ) : filteredTransactions.length === 0 ? (
             <p className="text-center text-slate-400 py-8 text-sm border border-dashed border-slate-200 rounded-xl">No transactions found.</p>
           ) : (
-            /* Premium Border Wrapper for the Table Grid */
             <div className="overflow-x-auto border border-slate-200/70 rounded-xl shadow-inner bg-white">
               <table className="w-full border-collapse text-left text-sm table-fixed md:min-w-[850px]">
                 <thead>
@@ -361,12 +359,9 @@ export default function App() {
 
                     return (
                       <tr key={tx._id} className="hover:bg-slate-50/50 transition-colors duration-150">
-                        {/* Column 1: Tracking Number */}
                         <td className="p-3.5 px-4 align-top font-medium text-xs md:text-sm whitespace-nowrap">
                           <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-mono font-bold tracking-tight text-[11px] md:text-xs border border-slate-200/40 shadow-2xs">{tx.trackingNumber}</span>
                         </td>
-                        
-                        {/* Column 2: Details */}
                         <td className="p-3.5 px-4 align-top">
                           <div className="font-bold text-slate-900 text-[14px] md:text-[15px] tracking-tight">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1 text-xs flex items-center gap-1">
@@ -376,14 +371,9 @@ export default function App() {
                             <span>👤 Assisted by:</span> 
                             <span className="bg-slate-50 text-slate-700 border border-slate-100 px-2 py-0.5 rounded-md font-medium">{tx.assistedBy || 'None'}</span>
                           </div>
-                          {/* Visible only on mobile portrait */}
                           <div className="block md:hidden text-[11px] text-slate-400 mt-2 font-medium">🕒 {orasFormat}</div>
                         </td>
-                        
-                        {/* Column 3: Date/Time (Desktop only) */}
                         <td className="p-3.5 px-4 align-top hidden md:table-cell text-slate-500 text-xs md:text-sm whitespace-nowrap pt-4 font-medium">{orasFormat}</td>
-                        
-                        {/* Column 4: Premium Status Selector */}
                         <td className="p-3.5 px-4 align-top text-right md:text-left">
                           <select 
                             value={tx.status || 'Pending'} 
