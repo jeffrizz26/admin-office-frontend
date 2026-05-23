@@ -9,7 +9,6 @@ const dashboardStyles = `
   .col-status { width: 120px; }
   .mobile-time-block { display: none; }
 
-  /* kapag NAKATAYO ang Mobile (Portrait) */
   @media (max-width: 767px) {
     .col-track { width: 100px; }
     .col-time { display: none; }
@@ -17,7 +16,6 @@ const dashboardStyles = `
     .mobile-time-block { display: block; font-size: 11px; color: #64748b; margin-top: 3px; }
   }
 
-  /* kapag NAKAHIGA ang Mobile (Landscape) o Desktop View */
   @media (min-width: 568px) and (orientation: landscape) {
     .col-time { display: table-cell !important; }
     .mobile-time-block { display: none !important; }
@@ -32,19 +30,33 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState(''); 
   const [formData, setFormData] = useState({
     firstName: '', middleName: '', lastName: '',
-    purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular'
+    purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular',
+    assistedBy: '' // 👈 Bagong field para sa nag-assist na staff
   });
   const [step, setStep] = useState(1);
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [transactions, setTransactions] = useState([]);
+  const [assistants, setAssistants] = useState([]); // 👈 Listahan ng active staff mula sa DB
+  const [newStaffName, setNewStaffName] = useState(''); // Input para sa pagdagdag ng staff
   const [loading, setLoading] = useState(true);
   const [sessionPin, setSessionPin] = useState(() => localStorage.getItem('active_session_pin') || '');
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showStaffModal, setShowStaffModal] = useState(false); // 👈 Modal para sa pamamahala ng staff
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
 
   const BACKEND_URL = 'https://admin-office-backend.vercel.app'; 
 
+  // Sabay na i-fe-fetch ang mga transaksyon at listahan ng staff
   useEffect(() => {
+    const fetchAssistants = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/assistants`);
+        const result = await res.json();
+        if (result.success) setAssistants(result.data);
+      } catch (err) { console.error("Error loading staff list:", err); }
+    };
+    fetchAssistants();
+
     if (view !== 'dashboard') { setLoading(false); return; } 
 
     const fetchTransactions = async () => {
@@ -56,16 +68,11 @@ export default function App() {
         if (result.success) {
           setTransactions(result.data);
         } else {
-          localStorage.removeItem('active_session_pin');
-          setSessionPin('');
-          setView('login');
-          alert('⚠️ Session expired o nagbago ang Admin PIN. Mangyaring mag-login muli.');
+          localStorage.removeItem('active_session_pin'); setSessionPin(''); setView('login');
+          alert('⚠️ Session expired. Mangyaring mag-login muli.');
         }
-      } catch (error) {
-        console.error("Dashboard Sync Error:", error);
-      } finally {
-        setLoading(false);
-      }
+      } catch (error) { console.error("Dashboard Sync Error:", error); } 
+      finally { setLoading(false); }
     };
 
     fetchTransactions();
@@ -77,9 +84,8 @@ export default function App() {
   const handlePurposeChange = (e) => setFormData({ ...formData, purpose: e.target.value, subPurpose: '', otherSpecify: '', dateNeeded: '' });
   
   const resetForm = () => {
-    setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular' });
-    setGeneratedTracking('');
-    setStep(1);
+    setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular', assistedBy: '' });
+    setGeneratedTracking(''); setStep(1);
   };
 
   const saveToDatabase = async () => {
@@ -91,15 +97,40 @@ export default function App() {
       });
       const result = await response.json();
       if (result.success) {
-        setGeneratedTracking(result.data.trackingNumber);
-        setStep(3);
+        setGeneratedTracking(result.data.trackingNumber); setStep(3);
         setTransactions(prev => [result.data, ...prev]);
-      } else {
-        alert('❌ Error: ' + result.message);
+      } else { alert('❌ Error: ' + result.message); }
+    } catch (error) { alert('❌ Server Offline!'); }
+  };
+
+  // Mga Functions para sa Pagdagdag at Pagbura ng Staff (Admin Control)
+  const handleAddStaff = async (e) => {
+    e.preventDefault();
+    if (!newStaffName.trim()) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/assistants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionPin}` },
+        body: JSON.stringify({ name: newStaffName.trim() })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setAssistants(result.data); setNewStaffName('');
       }
-    } catch (error) {
-      alert('❌ Server Offline!');
-    }
+    } catch (err) { alert("❌ Error adding staff."); }
+  };
+
+  const handleRemoveStaff = async (name) => {
+    if (!window.confirm(`Sigurado ka bang tatanggalin si ${name} sa listahan?`)) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/assistants/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionPin}` },
+        body: JSON.stringify({ name })
+      });
+      const result = await res.json();
+      if (result.success) setAssistants(result.data);
+    } catch (err) { alert("❌ Error removing staff."); }
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -113,9 +144,7 @@ export default function App() {
       if (result.success) {
         setTransactions(prev => prev.map(tx => tx._id === id ? { ...tx, status: newStatus } : tx));
       }
-    } catch (error) {
-      alert('❌ Error updating status!');
-    }
+    } catch (error) { alert('❌ Error updating status!'); }
   };
 
   const handleAdminLogin = async (e) => {
@@ -129,14 +158,9 @@ export default function App() {
       const result = await response.json();
       if (result.success) {
         localStorage.setItem('active_session_pin', adminPasswordInput);
-        setSessionPin(adminPasswordInput);
-        setLoading(true); setView('dashboard'); setAdminPasswordInput('');
-      } else {
-        alert('❌ Maling Password!');
-      }
-    } catch (error) {
-      alert('❌ Offline ang server!');
-    }
+        setSessionPin(adminPasswordInput); setLoading(true); setView('dashboard'); setAdminPasswordInput('');
+      } else { alert('❌ Maling Password!'); }
+    } catch (error) { alert('❌ Offline ang server!'); }
   };
 
   const handleChangePinSubmit = async (e) => {
@@ -153,31 +177,25 @@ export default function App() {
       });
       const result = await response.json();
       if (result.success) {
-        localStorage.setItem('active_session_pin', pinForm.newPin);
-        setSessionPin(pinForm.newPin);
-        alert("✅ Kasado na ang bagong PIN!");
-        setShowPinModal(false);
-        setPinForm({ currentPin: '', newPin: '', confirmPin: '' });
+        localStorage.setItem('active_session_pin', pinForm.newPin); setSessionPin(pinForm.newPin);
+        alert("✅ Kasado na ang bagong PIN!"); setShowPinModal(false); setPinForm({ currentPin: '', newPin: '', confirmPin: '' });
       }
-    } catch (error) {
-      alert("❌ Bigong ma-update ang PIN.");
-    }
+    } catch (error) { alert("❌ Bigong ma-update ang PIN."); }
   };
 
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
-    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''}`.toLowerCase();
+    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
-    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Status"];
-    const rows = filteredTransactions.map(tx => [tx.trackingNumber, tx.firstName, tx.lastName, tx.urgency, tx.purpose, tx.status]);
+    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Assisted By", "Status"];
+    const rows = filteredTransactions.map(tx => [tx.trackingNumber, tx.firstName, tx.lastName, tx.urgency, tx.purpose, tx.assistedBy || 'None', tx.status]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
     const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent));
-    link.setAttribute("download", `Office_Report.csv`);
+    link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
 
@@ -185,13 +203,11 @@ export default function App() {
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '12px' }}>
       <style>{dashboardStyles}</style>
 
-      {/* Main Navigation Tab */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
         <button onClick={() => setView('form')} style={{ flex: 1, maxWidth: '120px', padding: '10px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📄 Form</button>
         <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} style={{ flex: 1, maxWidth: '120px', padding: '10px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📊 Dashboard</button>
       </div>
 
-      {/* STEP BY STEP FORM */}
       {view === 'form' && (
         <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '450px', margin: '0 auto' }}>
           {step === 1 && (
@@ -241,6 +257,15 @@ export default function App() {
                 <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
               )}
 
+              {/* 🛠️ TYPEBOX / DATALIST: Pwedeng mamili o mag-type si Teacher */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <label style={{ fontWeight: 'bold', fontSize: '14px' }}>Sino ang nag-assist sa iyo? (Staff Name):</label>
+                <input type="text" name="assistedBy" list="staff-list" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                <datalist id="staff-list">
+                  {assistants.map((name, i) => <option key={i} value={name} />)}
+                </datalist>
+              </div>
+
               <button type="submit" style={{ padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>NEXT STEP ➡️</button>
             </form>
           )}
@@ -250,6 +275,7 @@ export default function App() {
               <h2 style={{ textAlign: 'center' }}>Confirm Information</h2>
               <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
               <p><strong>Purpose:</strong> {formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</p>
+              <p><strong>Assisted By:</strong> {formData.assistedBy}</p>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setStep(1)} style={{ flex: 1, padding: '10px', backgroundColor: '#ccc', borderRadius: '5px', border: 'none' }}>Back</button>
                 <button onClick={saveToDatabase} style={{ flex: 1, padding: '10px', backgroundColor: '#16a34a', color: 'white', borderRadius: '5px', fontWeight: 'bold', border: 'none' }}>SUBMIT</button>
@@ -270,7 +296,6 @@ export default function App() {
         </div>
       )}
 
-      {/* LOGIN VIEW */}
       {view === 'login' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '350px', margin: '0 auto', textAlign: 'center' }}>
           <h2>Admin Login</h2>
@@ -281,19 +306,19 @@ export default function App() {
         </div>
       )}
 
-      {/* OFFICE DASHBOARD VIEW */}
       {view === 'dashboard' && (
         <div style={{ backgroundColor: 'white', padding: '15px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '1000px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
             <h2 style={{ margin: '0' }}>Office Dashboard</h2>
             <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={() => setShowStaffModal(true)} style={{ padding: '8px 12px', backgroundColor: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>👥 Staff</button>
               <button onClick={() => setShowPinModal(true)} style={{ padding: '8px 12px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '5px', fontWeight: 'bold' }}>🔑 PIN</button>
               <button onClick={exportToCSV} style={{ padding: '8px 12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold' }}>📥 CSV</button>
               <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} style={{ padding: '8px 12px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold' }}>🔒 Logout</button>
             </div>
           </div>
 
-          <input type="text" placeholder="🔍 Mag-hanap..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '11px', boxSizing: 'border-box', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '15px' }}/>
+          <input type="text" placeholder="🔍 Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '11px', boxSizing: 'border-box', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '15px' }}/>
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
             <button onClick={() => setDashboardTab('active')} style={{ flex: 1, padding: '10px', backgroundColor: dashboardTab === 'active' ? '#2563eb' : '#f3f4f6', color: dashboardTab === 'active' ? 'white' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>Active ({transactions.filter(t => t.status !== 'Completed').length})</button>
@@ -328,6 +353,7 @@ export default function App() {
                         <td className="dash-td">
                           <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{tx.lastName}, {tx.firstName}</div>
                           <div style={{ color: '#475569' }}>📌 {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
+                          <div style={{ fontSize: '12px', color: '#2563eb', marginTop: '2px' }}>👤 Assisted by: <strong>{tx.assistedBy || 'None'}</strong></div>
                           <div className="mobile-time-block">🕒 {orasFormat}</div>
                         </td>
                         <td className="dash-td col-time" style={{ color: '#4b5563', fontSize: '12px', whiteSpace: 'nowrap' }}>{orasFormat}</td>
@@ -343,6 +369,38 @@ export default function App() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* 👥 MODAL: Pamamahala ng Listahan ng Staff (Dito nagdadagdag/nagbabawas ang Admin) */}
+          {showStaffModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+              <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', width: '100%', maxWidth: '360px', maxHeight: '80vh', overflowY: 'auto' }}>
+                <h3 style={{ margin: '0 0 15px 0', textAlign: 'center' }}>👥 Pamahalaan ang Staff</h3>
+                
+                <form onSubmit={handleAddStaff} style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
+                  <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '5px', border: '1px solid #ccc' }}/>
+                  <button type="submit" style={{ padding: '8px 12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>+ Add</button>
+                </form>
+
+                <div style={{ borderTop: '1px solid #eee', paddingTop: '10px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#666' }}>Kasalukuyang Listahan:</label>
+                  {assistants.length === 0 ? (
+                    <p style={{ fontSize: '13px', color: '#999', textAlign: 'center' }}>Walang nakatalang staff.</p>
+                  ) : (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0 0' }}>
+                      {assistants.map((name, index) => (
+                        <li key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f9f9f9', fontSize: '14px' }}>
+                          <span>{name}</span>
+                          <button type="button" onClick={() => handleRemoveStaff(name)} style={{ backgroundColor: 'transparent', color: '#dc2626', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>❌</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <button onClick={() => setShowStaffModal(false)} style={{ width: '100%', marginTop: '20px', padding: '10px', backgroundColor: '#cbd5e1', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Isara</button>
+              </div>
             </div>
           )}
 
