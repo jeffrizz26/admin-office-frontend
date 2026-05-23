@@ -195,8 +195,8 @@ export default function App() {
       
       {/* Navigation Tabs */}
       <div className="flex justify-center gap-3 mb-6">
-        <button onClick={() => setView('form')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'form' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📄 Form</button>
-        <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'dashboard' || view === 'login' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📊 Dashboard</button>
+        <button onClick={() => setView('form')} className={`flex-1 max-w-[130px] h-[44px] px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'form' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📄 Form</button>
+        <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[130px] h-[44px] px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'dashboard' || view === 'login' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📊 Dashboard</button>
       </div>
 
       {/* Transaction Form */}
@@ -204,64 +204,84 @@ export default function App() {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[460px] mx-auto">
           {step === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4">
-              <h2 className="text-center text-xl font-bold text-slate-800 mb-1">Admin Office Transaction</h2>
+              <h2 className="text-center text-xl font-bold text-slate-800 mb-2">Admin Office Transaction</h2>
               
-              <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
-              <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
-              <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 ml-0.5">First Name</label>
+                <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+              </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Urgency / Priority:</label>
-                <div className="flex gap-6 p-1">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 ml-0.5">Middle Name (Optional)</label>
+                <input type="text" name="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleInputChange} className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 ml-0.5">Last Name</label>
+                <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-slate-700 ml-0.5">Urgency / Priority</label>
+                <div className="flex gap-6 h-[40px] items-center border border-slate-100 bg-slate-50 px-3 rounded-lg">
                   <label className="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="urgency" value="Regular" checked={formData.urgency === 'Regular'} onChange={handleInputChange} className="w-4 h-4 text-blue-600" /> Regular</label>
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
               </div>
 
-              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-                <option value="">-- Select Purpose --</option>
-                <option value="Inquiry">Inquiry</option>
-                <option value="Sign DTR/Summary of Absences">Sign DTR/Summary of Absences</option>
-                <option value="File Form 6">File Form 6</option>
-                <option value="Request Document(s)">Request Document(s)</option>
-                <option value="Submit Document(s) for Processing">Submit Document(s) for Processing</option>
-                <option value="Recieve Document(s)">Recieve Document(s)</option>
-                <option value="Request Supply / Equipment">Request Supply / Equipment</option>
-                <option value="Others">Others</option>
-              </select>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-slate-700 ml-0.5">Select Purpose</label>
+                <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                  <option value="">-- Select Purpose --</option>
+                  <option value="Inquiry">Inquiry</option>
+                  <option value="Sign DTR/Summary of Absences">Sign DTR/Summary of Absences</option>
+                  <option value="File Form 6">File Form 6</option>
+                  <option value="Request Document(s)">Request Document(s)</option>
+                  <option value="Submit Document(s) for Processing">Submit Document(s) for Processing</option>
+                  <option value="Recieve Document(s)">Recieve Document(s)</option>
+                  <option value="Request Supply / Equipment">Request Supply / Equipment</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
 
               {formData.purpose === "Submit Document(s) for Processing" && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
-                  <option value="">-- Choose Document --</option>
-                  <option value="Travel Authority (Local)">Travel Authority (Local)</option>
-                  <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
-                  <option value="Permit to Teach">Permit to Teach</option>
-                </select>
+                <div className="flex flex-col gap-1">
+                  <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
+                    <option value="">-- Choose Document --</option>
+                    <option value="Travel Authority (Local)">Travel Authority (Local)</option>
+                    <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
+                    <option value="Permit to Teach">Permit to Teach</option>
+                  </select>
+                </div>
               )}
 
               {formData.purpose === 'Request Document(s)' && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
-                  <option value="">-- Choose Document --</option>
-                  <option value="IPCRF">IPCRF</option>
-                  <option value="SALN">SALN</option>
-                  <option value="ITR">ITR</option>
-                </select>
+                <div className="flex flex-col gap-1">
+                  <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs">
+                    <option value="">-- Choose Document --</option>
+                    <option value="IPCRF">IPCRF</option>
+                    <option value="SALN">SALN</option>
+                    <option value="ITR">ITR</option>
+                  </select>
+                </div>
               )}
 
               {formData.purpose === "Others" && (
-                <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
+                <div className="flex flex-col gap-1">
+                  <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
+                </div>
               )}
 
-              <div className="flex flex-col gap-1.5 relative">
-                <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
+              <div className="flex flex-col gap-1 relative">
+                <label className="text-xs font-bold text-slate-700 ml-0.5">Sino ang nag-assist sa iyo?</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
                   onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
-                  className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs" 
+                  className="h-[48px] px-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs" 
                 />
                 
                 {showStaffDropdown && filteredAssistants.length > 0 && (
-                  <ul className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg max-h-[140px] overflow-y-auto z-50 shadow-lg mt-1 p-1 list-none">
+                  <ul className="absolute top-[75px] left-0 right-0 bg-white border border-slate-200 rounded-lg max-h-[140px] overflow-y-auto z-50 shadow-lg mt-1 p-1 list-none">
                     {filteredAssistants.map((name, i) => (
                       <li key={i} className="p-2.5 cursor-pointer text-sm text-slate-700 rounded-md text-left hover:bg-slate-50 hover:text-blue-600 transition-colors"
                         onMouseDown={() => { setFormData({ ...formData, assistedBy: name }); setShowStaffDropdown(false); }}>
@@ -272,7 +292,7 @@ export default function App() {
                 )}
               </div>
 
-              <button type="submit" className="p-3 mt-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition duration-200 uppercase tracking-wide">NEXT STEP ➡️</button>
+              <button type="submit" className="h-[48px] flex items-center justify-center mt-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition duration-200 uppercase tracking-wide">NEXT STEP ➡️</button>
             </form>
           )}
 
@@ -285,8 +305,8 @@ export default function App() {
                 <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
               </div>
               <div className="flex gap-3 mt-1">
-                <button onClick={() => setStep(1)} className="flex-1 p-2.5 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Back</button>
-                <button onClick={saveToDatabase} className="flex-1 p-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition">SUBMIT</button>
+                <button onClick={() => setStep(1)} className="flex-1 h-[48px] bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Back</button>
+                <button onClick={saveToDatabase} className="flex-1 h-[48px] bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition">SUBMIT</button>
               </div>
             </div>
           )}
@@ -298,7 +318,7 @@ export default function App() {
               <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl my-5 shadow-sm">
                 <h2 className="m-0 text-amber-800 font-mono tracking-widest text-2xl font-bold">{generatedTracking}</h2>
               </div>
-              <button onClick={resetForm} className="p-2.5 px-6 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition shadow-sm">New Transaction</button>
+              <button onClick={resetForm} className="h-[48px] px-6 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition shadow-sm">New Transaction</button>
             </div>
           )}
         </div>
@@ -309,8 +329,8 @@ export default function App() {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[360px] mx-auto text-center">
           <h2 className="text-xl font-bold text-slate-800 mb-4">Admin Login</h2>
           <form onSubmit={handleAdminLogin}>
-            <input type="password" placeholder="Enter PIN" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required className="p-3 w-full rounded-lg border border-slate-200 mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
-            <button type="submit" className="w-full p-2.5 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition shadow-sm">Unlock Dashboard</button>
+            <input type="password" placeholder="Enter PIN" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required className="h-[48px] px-3 w-full rounded-lg border border-slate-200 mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+            <button type="submit" className="w-full h-[48px] bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition shadow-sm">Unlock Dashboard</button>
           </form>
         </div>
       )}
@@ -330,7 +350,7 @@ export default function App() {
 
           <div className="relative mb-5">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-sm">🔍</span>
-            <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 pl-9 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+            <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full h-[46px] pl-9 pr-3 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
           </div>
 
           <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-xl border border-slate-100">
@@ -401,8 +421,8 @@ export default function App() {
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">👥 Pamahalaan ang Staff</h3>
                 
                 <form onSubmit={handleAddStaff} className="flex gap-2 mb-4">
-                  <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
-                  <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-sm transition">+</button>
+                  <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 h-[40px] px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+                  <button type="submit" className="h-[40px] px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-sm transition">+</button>
                 </form>
 
                 <div className="border-t border-slate-100 pt-3">
@@ -421,7 +441,7 @@ export default function App() {
                   )}
                 </div>
 
-                <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 p-2 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Isara</button>
+                <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 h-[44px] bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Isara</button>
               </div>
             </div>
           )}
@@ -432,12 +452,12 @@ export default function App() {
               <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl border border-slate-100">
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">⚙️ Change Admin PIN</h3>
                 <form onSubmit={handleChangePinSubmit} className="flex flex-col gap-3">
-                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
-                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
-                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="h-[44px] px-3 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="h-[44px] px-3 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="h-[44px] px-3 border border-slate-200 rounded-lg text-sm focus:outline-none" />
                   <div className="flex gap-2 mt-2">
-                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">Cancel</button>
-                    <button type="submit" className="flex-1 p-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm">Save</button>
+                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 h-[44px] bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">Cancel</button>
+                    <button type="submit" className="flex-1 h-[44px] bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm">Save</button>
                   </div>
                 </form>
               </div>
