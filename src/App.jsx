@@ -199,7 +199,7 @@ export default function App() {
         <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'dashboard' || view === 'login' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📊 Dashboard</button>
       </div>
 
-      {/* Transaction Form Component */}
+      {/* Transaction Form */}
       {view === 'form' && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[460px] mx-auto">
           {step === 1 && (
@@ -251,8 +251,8 @@ export default function App() {
                 <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
               )}
 
-              <div className="flex flex-col gap-1.5 relative mt-1.5">
-                <label className="font-bold text-[11px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
+              <div className="flex flex-col gap-1.5 relative mt-4">
+                <label className="font-bold text-[13px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
                   onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
@@ -303,7 +303,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Admin Login Component */}
+      {/* Admin Login */}
       {view === 'login' && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[360px] mx-auto text-center">
           <h2 className="text-xl font-bold text-slate-800 mb-4">Admin Login</h2>
@@ -314,7 +314,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Premium Dashboard Component */}
+      {/* Premium Dashboard */}
       {view === 'dashboard' && (
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 max-w-[1060px] mx-auto">
           <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
@@ -342,14 +342,16 @@ export default function App() {
           ) : filteredTransactions.length === 0 ? (
             <p className="text-center text-slate-400 py-8 text-sm border border-dashed border-slate-200 rounded-xl">No transactions found.</p>
           ) : (
-            <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white">
-              <table className="w-full text-left border-collapse min-w-[800px]">
+            
+            /* DITO ANG FINAL FIX PARA SA TABLE: Gumamit tayo ng min-w-max at tinanggal ang lahat ng sumosobrang fixed widths */
+            <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm w-full">
+              <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[140px]">Tracking No.</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Detalye ng Transaksyon</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[180px]">Oras/Petsa</th>
-                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[140px] text-center">Status</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Tracking No.</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Detalye ng Transaksyon</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Oras/Petsa</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Aksyon / Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -358,27 +360,27 @@ export default function App() {
 
                     return (
                       <tr key={tx._id} className="hover:bg-slate-50 transition-colors duration-200">
-                        <td className="p-4 align-middle">
-                          <span className="bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-md font-mono font-bold text-xs border border-slate-200 shadow-sm">{tx.trackingNumber}</span>
+                        <td className="px-6 py-4 align-middle">
+                          <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-md font-mono font-bold text-[13px] border border-slate-200 shadow-sm">{tx.trackingNumber}</span>
                         </td>
-                        <td className="p-4 align-middle">
+                        <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
-                          <div className="text-slate-600 mt-1 text-sm flex items-center gap-1.5">
-                            <span>📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
+                          <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5">
+                            <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
                           </div>
                           <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-                            <span>👤 Assisted by:</span> 
+                            <span className="font-medium text-slate-400">Assisted by:</span> 
                             <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium border border-slate-200/60">{tx.assistedBy || 'None'}</span>
                           </div>
                         </td>
-                        <td className="p-4 align-middle text-slate-500 text-sm font-medium">
+                        <td className="px-6 py-4 align-middle text-slate-500 text-[13.5px] font-medium">
                           {orasFormat}
                         </td>
-                        <td className="p-4 align-middle text-center">
+                        <td className="px-6 py-4 align-middle text-center">
                           <select 
                             value={tx.status || 'Pending'} 
                             onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 ${getStatusDropdownClass(tx.status)}`}
+                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 ${getStatusDropdownClass(tx.status)}`}
                           >
                             <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
                             <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
@@ -391,6 +393,8 @@ export default function App() {
                 </tbody>
               </table>
             </div>
+            /* KATAPUSAN NG TABLE FIX */
+
           )}
 
           {/* Manage Staff Modal */}
