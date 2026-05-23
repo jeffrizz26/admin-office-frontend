@@ -252,7 +252,7 @@ export default function App() {
               )}
 
               <div className="flex flex-col gap-1.5 relative mt-1.5">
-                <label className="font-bold text-[13px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
+                <label className="font-bold text-[11px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
                   onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
