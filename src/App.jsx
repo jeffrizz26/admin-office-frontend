@@ -179,32 +179,46 @@ export default function App() {
     name.toLowerCase().includes(formData.assistedBy.toLowerCase())
   );
 
+  // Helper Function para sa Dynamic Premium Colors ng Status Dropdown
+  const getStatusDropdownClass = (status) => {
+    switch (status) {
+      case 'In Progress':
+        return 'bg-blue-50 text-blue-700 border-blue-200 focus:ring-blue-400';
+      case 'Completed':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 focus:ring-emerald-400';
+      default: // Pending
+        return 'bg-amber-50 text-amber-700 border-amber-200 focus:ring-amber-400';
+    }
+  };
+
   return (
-    <div className="font-sans bg-gray-100 min-h-screen p-3">
+    <div className="font-sans bg-slate-50 min-h-screen p-4 md:p-6 antialiased text-slate-800">
       
       {/* Navigation Tabs */}
-      <div className="flex justify-center gap-2.5 mb-5">
-        <button onClick={() => setView('form')} className={`flex-1 max-w-[120px] p-2.5 cursor-pointer rounded border font-bold ${view === 'form' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}`}>📄 Form</button>
-        <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[120px] p-2.5 cursor-pointer rounded border font-bold ${view === 'dashboard' || view === 'login' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'}`}>📊 Dashboard</button>
+      <div className="flex justify-center gap-3 mb-6">
+        <button onClick={() => setView('form')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'form' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📄 Form</button>
+        <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'dashboard' || view === 'login' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📊 Dashboard</button>
       </div>
 
       {/* Transaction Form Component */}
       {view === 'form' && (
-        <div className="bg-white p-5 rounded-xl shadow-md max-w-[450px] mx-auto">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[460px] mx-auto">
           {step === 1 && (
-            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4">
-              <h2 className="text-center text-xl font-bold text-gray-800 m-0">Admin Office Transaction</h2>
-              <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-2.5 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-              <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-2.5 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-              <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="p-2.5 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4.5">
+              <h2 className="text-center text-xl font-bold text-slate-800 mb-1">Admin Office Transaction</h2>
+              <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+              <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+              <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
 
-              <label className="font-bold text-sm text-gray-700">Urgency / Priority:</label>
-              <div className="flex gap-5">
-                <label className="inline-flex items-center gap-1"><input type="radio" name="urgency" value="Regular" checked={formData.urgency === 'Regular'} onChange={handleInputChange} /> Regular</label>
-                <label className="inline-flex items-center gap-1 text-red-600 font-bold"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} /> ⚠️ Urgent</label>
+              <div className="flex flex-col gap-1.5 mt-1">
+                <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Urgency / Priority:</label>
+                <div className="flex gap-6 p-1">
+                  <label className="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="urgency" value="Regular" checked={formData.urgency === 'Regular'} onChange={handleInputChange} className="w-4 h-4 text-blue-600" /> Regular</label>
+                  <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
+                </div>
               </div>
 
-              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-2.5 rounded border border-gray-300 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
                 <option value="">-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
                 <option value="Sign DTR/Summary of Absences">Sign DTR/Summary of Absences</option>
@@ -217,7 +231,7 @@ export default function App() {
               </select>
 
               {formData.purpose === "Submit Document(s) for Processing" && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-2.5 rounded border border-gray-300 bg-white">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white">
                   <option value="">-- Choose Document --</option>
                   <option value="Travel Authority (Local)">Travel Authority (Local)</option>
                   <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
@@ -226,7 +240,7 @@ export default function App() {
               )}
 
               {formData.purpose === 'Request Document(s)' && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-2.5 rounded border border-gray-300 bg-white">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white">
                   <option value="">-- Choose Document --</option>
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
@@ -235,22 +249,22 @@ export default function App() {
               )}
 
               {formData.purpose === "Others" && (
-                <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-2.5 rounded border border-gray-300" />
+                <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200" />
               )}
 
-              {/* 100% Tailwind Custom Dropdown */}
-              <div className="flex flex-col gap-1 relative">
-                <label className="font-bold text-sm text-gray-700">Sino ang nag-assist sa iyo? (Staff Name):</label>
+              {/* Tailwind Custom Dropdown */}
+              <div className="flex flex-col gap-1.5 relative">
+                <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
                   onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
-                  className="p-2.5 rounded border border-gray-300 w-full box-border focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                  className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 
                 />
                 
                 {showStaffDropdown && filteredAssistants.length > 0 && (
-                  <ul className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md max-h-[130px] overflow-y-auto应用 z-50 shadow-lg mt-0.5 p-0 list-none">
+                  <ul className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg max-h-[140px] overflow-y-auto z-50 shadow-lg mt-1 p-1 list-none">
                     {filteredAssistants.map((name, i) => (
-                      <li key={i} className="p-2.5 cursor-pointer text-sm text-gray-700 border-b border-gray-100 text-left hover:bg-gray-50 hover:text-blue-700"
+                      <li key={i} className="p-2.5 cursor-pointer text-sm text-slate-700 rounded-md text-left hover:bg-slate-50 hover:text-blue-600 transition-colors"
                         onMouseDown={() => { setFormData({ ...formData, assistedBy: name }); setShowStaffDropdown(false); }}>
                         👤 {name}
                       </li>
@@ -259,31 +273,33 @@ export default function App() {
                 )}
               </div>
 
-              <button type="submit" className="p-3 bg-blue-600 text-white border-none rounded font-bold cursor-pointer hover:bg-blue-700 transition">NEXT STEP ➡️</button>
+              <button type="submit" className="p-3 mt-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition duration-200 uppercase tracking-wide">NEXT STEP ➡️</button>
             </form>
           )}
 
           {step === 2 && (
             <div className="flex flex-col gap-4">
-              <h2 className="text-center text-xl font-bold text-gray-800">Confirm Information</h2>
-              <p className="text-gray-700"><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
-              <p className="text-gray-700"><strong>Purpose:</strong> {formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</p>
-              <p className="text-gray-700"><strong>Assisted By:</strong> {formData.assistedBy}</p>
-              <div className="flex gap-2.5">
-                <button onClick={() => setStep(1)} className="flex-1 p-2.5 bg-gray-300 text-gray-800 rounded font-bold hover:bg-gray-400">Back</button>
-                <button onClick={saveToDatabase} className="flex-1 p-2.5 bg-green-600 text-white rounded font-bold hover:bg-green-700">SUBMIT</button>
+              <h2 className="text-center text-xl font-bold text-slate-800">Confirm Information</h2>
+              <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
+                <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
+                <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</span></p>
+                <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
+              </div>
+              <div className="flex gap-3 mt-1">
+                <button onClick={() => setStep(1)} className="flex-1 p-2.5 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Back</button>
+                <button onClick={saveToDatabase} className="flex-1 p-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition">SUBMIT</button>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="text-center py-5">
-              <h1 className="text-green-600 text-5xl font-bold m-0">✓</h1>
-              <h3 className="text-lg font-bold text-gray-800 mt-2">Transaction Submitted!</h3>
-              <div className="bg-yellow-100 p-4 rounded-md my-5">
-                <h2 className="m-0 text-gray-800 font-mono tracking-wider text-2xl font-bold">{generatedTracking}</h2>
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-inner">✓</div>
+              <h3 className="text-lg font-bold text-slate-800">Transaction Submitted!</h3>
+              <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl my-5 shadow-sm">
+                <h2 className="m-0 text-amber-800 font-mono tracking-widest text-2xl font-bold">{generatedTracking}</h2>
               </div>
-              <button onClick={resetForm} className="p-2.5 px-5 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">New Transaction</button>
+              <button onClick={resetForm} className="p-2.5 px-6 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition shadow-sm">New Transaction</button>
             </div>
           )}
         </div>
@@ -291,75 +307,92 @@ export default function App() {
 
       {/* Admin Login Component */}
       {view === 'login' && (
-        <div className="bg-white p-6 rounded-xl shadow-md max-w-[350px] mx-auto text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Admin Login</h2>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[360px] mx-auto text-center">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">Admin Login</h2>
           <form onSubmit={handleAdminLogin}>
-            <input type="password" placeholder="Enter PIN" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required className="p-2.5 w-4/5 rounded border border-gray-300 mb-4 text-center focus:outline-none focus:ring-1 focus:ring-green-500" />
-            <button type="submit" className="p-2.5 px-5 bg-green-600 text-white rounded font-bold hover:bg-green-700">Unlock Dashboard</button>
+            <input type="password" placeholder="Enter PIN" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required className="p-3 w-full rounded-lg border border-slate-200 mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+            <button type="submit" className="w-full p-2.5 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition shadow-sm">Unlock Dashboard</button>
           </form>
         </div>
       )}
 
-      {/* Dashboard Component (Perfect Spacing on both Desktop and Mobile Devices) */}
+      {/* Premium Dashboard Component */}
       {view === 'dashboard' && (
-        <div className="bg-white p-4 rounded-xl shadow-md max-w-[1000px] mx-auto">
-          <div className="flex justify-between items-center flex-wrap gap-2.5 mb-5">
-            <h2 className="text-xl font-bold text-gray-800 m-0">Office Dashboard</h2>
-            <div className="flex gap-1.5">
-              <button onClick={() => setShowStaffModal(true)} className="p-2 px-3 bg-blue-50 text-blue-800 border border-blue-200 rounded font-bold text-sm hover:bg-blue-100">👥 Staff</button>
-              <button onClick={() => setShowPinModal(true)} className="p-2 px-3 bg-gray-100 text-gray-700 rounded font-bold text-sm hover:bg-gray-200">🔑 PIN</button>
-              <button onClick={exportToCSV} className="p-2 px-3 bg-green-600 text-white rounded font-bold text-sm hover:bg-green-700">📥 CSV</button>
-              <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} className="p-2 px-3 bg-red-600 text-white rounded font-bold text-sm hover:bg-red-700">🔒 Logout</button>
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 max-w-[1060px] mx-auto">
+          <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight m-0">Office Dashboard</h2>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => setShowStaffModal(true)} className="p-2 px-3.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg font-semibold text-xs hover:bg-slate-100 transition">👥 Staff</button>
+              <button onClick={() => setShowPinModal(true)} className="p-2 px-3.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg font-semibold text-xs hover:bg-slate-100 transition">🔑 PIN</button>
+              <button onClick={exportToCSV} className="p-2 px-3.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg font-semibold text-xs hover:bg-emerald-100 transition">📥 CSV</button>
+              <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} className="p-2 px-3.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg font-bold text-xs hover:bg-rose-100 transition">🔒 Logout</button>
             </div>
           </div>
 
-          <input type="text" placeholder="🔍 Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 box-border rounded-md border border-gray-300 mb-4 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+          <div className="relative mb-5">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-sm">🔍</span>
+            <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 pl-9 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+          </div>
 
-          <div className="flex gap-2.5 mb-5">
-            <button onClick={() => setDashboardTab('active')} className={`flex-1 p-2.5 rounded font-bold text-sm border ${dashboardTab === 'active' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-50 text-gray-700 border-gray-300'}`}>Active ({transactions.filter(t => t.status !== 'Completed').length})</button>
-            <button onClick={() => setDashboardTab('archive')} className={`flex-1 p-2.5 rounded font-bold text-sm border ${dashboardTab === 'archive' ? 'bg-gray-600 text-white border-gray-600' : 'bg-gray-50 text-gray-700 border-gray-300'}`}>Archives ({transactions.filter(t => t.status === 'Completed').length})</button>
+          <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-xl border border-slate-100">
+            <button onClick={() => setDashboardTab('active')} className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'active' ? 'bg-white text-blue-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>Active ({transactions.filter(t => t.status !== 'Completed').length})</button>
+            <button onClick={() => setDashboardTab('archive')} className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'archive' ? 'bg-white text-slate-700 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>Archives ({transactions.filter(t => t.status === 'Completed').length})</button>
           </div>
 
           {loading ? (
-            <p className="text-center text-gray-600 font-medium py-4">Loading details...</p>
+            <p className="text-center text-slate-500 font-medium py-6 text-sm animate-pulse">Loading dashboard records...</p>
           ) : filteredTransactions.length === 0 ? (
-            <p className="text-center text-gray-400 py-4">No transactions found.</p>
+            <p className="text-center text-slate-400 py-8 text-sm border border-dashed border-slate-200 rounded-xl">No transactions found.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm">
+            /* Premium Border Wrapper for the Table Grid */
+            <div className="overflow-x-auto border border-slate-200/70 rounded-xl shadow-inner bg-white">
+              <table className="w-full border-collapse text-left text-sm table-fixed md:min-w-[850px]">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="p-3 px-2 md:px-4 font-bold text-gray-700 border-b border-gray-200 align-top w-[95px] min-w-[95px] md:w-[15%] md:min-w-[120px]">Tracking No.</th>
-                    <th className="p-3 px-2 md:px-4 font-bold text-gray-700 border-b border-gray-200 align-top w-auto md:w-[50%]">Detalye ng Transaksyon</th>
-                    <th className="p-3 px-2 md:px-4 font-bold text-gray-700 border-b border-gray-200 align-top hidden md:table-cell md:w-[20%] md:min-w-[160px]">Oras/Petsa</th>
-                    <th className="p-3 px-2 md:px-4 font-bold text-gray-700 border-b border-gray-200 align-top w-[105px] min-w-[105px] md:w-[15%] md:min-w-[120px] text-right md:text-left">Status</th>
+                  <tr className="bg-slate-50/70 border-b border-slate-200/60">
+                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle w-[105px] min-w-[105px] md:w-[15%]">Tracking No.</th>
+                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle w-auto md:w-[48%]">Detalye ng Transaksyon</th>
+                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle hidden md:table-cell md:w-[22%]">Oras/Petsa</th>
+                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle w-[115px] min-w-[115px] md:w-[15%] text-right md:text-left">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {filteredTransactions.map((tx) => {
                     const orasFormat = tx.createdAt ? new Date(tx.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '---';
-                    const isDone = tx.status === 'Completed';
 
                     return (
-                      <tr key={tx._id} className="hover:bg-gray-50/70 transition-colors">
-                        <td className="p-3 px-2 md:px-4 border-b border-gray-200 align-top font-bold text-xs md:text-sm">
-                          <span className="bg-gray-100 text-gray-800 px-1.5 py-1 rounded inline-block font-mono">{tx.trackingNumber}</span>
+                      <tr key={tx._id} className="hover:bg-slate-50/50 transition-colors duration-150">
+                        {/* Column 1: Tracking Number */}
+                        <td className="p-3.5 px-4 align-top font-medium text-xs md:text-sm whitespace-nowrap">
+                          <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-mono font-bold tracking-tight text-[11px] md:text-xs border border-slate-200/40 shadow-2xs">{tx.trackingNumber}</span>
                         </td>
-                        <td className="p-3 px-2 md:px-4 border-b border-gray-200 align-top">
-                          <div className="font-bold text-gray-900 text-[14px] md:text-[15px]">{tx.lastName}, {tx.firstName}</div>
-                          <div className="text-gray-600 mt-0.5 text-xs md:text-sm">📌 {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</div>
-                          <div className="text-[11px] md:text-xs text-blue-600 mt-1">
-                            👤 Assisted by: <strong className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{tx.assistedBy || 'None'}</strong>
+                        
+                        {/* Column 2: Details */}
+                        <td className="p-3.5 px-4 align-top">
+                          <div className="font-bold text-slate-900 text-[14px] md:text-[15px] tracking-tight">{tx.lastName}, {tx.firstName}</div>
+                          <div className="text-slate-600 mt-1 text-xs flex items-center gap-1">
+                            <span>📌</span> <span className="font-medium text-slate-700">{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
                           </div>
-                          {/* Lalabas lang ito kapag naka-mobile portrait */}
-                          <div className="block md:hidden text-[11px] text-gray-500 mt-1">🕒 {orasFormat}</div>
+                          <div className="text-[11px] md:text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+                            <span>👤 Assisted by:</span> 
+                            <span className="bg-slate-50 text-slate-700 border border-slate-100 px-2 py-0.5 rounded-md font-medium">{tx.assistedBy || 'None'}</span>
+                          </div>
+                          {/* Visible only on mobile portrait */}
+                          <div className="block md:hidden text-[11px] text-slate-400 mt-2 font-medium">🕒 {orasFormat}</div>
                         </td>
-                        <td className="p-3 px-2 md:px-4 border-b border-gray-200 align-top hidden md:table-cell text-gray-600 text-xs md:text-sm whitespace-nowrap">{orasFormat}</td>
-                        <td className="p-3 px-2 md:px-4 border-b border-gray-200 align-top text-right md:text-left">
-                          <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} className={`p-1.5 rounded-md text-[11px] md:text-xs font-bold border border-gray-300 cursor-pointer w-full max-w-[110px] text-center focus:outline-none ${isDone ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                            <option value="Pending">🕒 Pending</option>
-                            <option value="In Progress">⚙️ Progress</option>
-                            <option value="Completed">✅ Done</option>
+                        
+                        {/* Column 3: Date/Time (Desktop only) */}
+                        <td className="p-3.5 px-4 align-top hidden md:table-cell text-slate-500 text-xs md:text-sm whitespace-nowrap pt-4 font-medium">{orasFormat}</td>
+                        
+                        {/* Column 4: Premium Status Selector */}
+                        <td className="p-3.5 px-4 align-top text-right md:text-left">
+                          <select 
+                            value={tx.status || 'Pending'} 
+                            onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
+                            className={`p-1.5 px-2 rounded-lg text-[11px] md:text-xs font-bold border cursor-pointer w-full max-w-[115px] text-center shadow-2xs focus:outline-none focus:ring-2 transition-all duration-200 ${getStatusDropdownClass(tx.status)}`}
+                          >
+                            <option value="Pending" className="bg-white text-slate-800 font-medium">🕒 Pending</option>
+                            <option value="In Progress" className="bg-white text-slate-800 font-medium">⚙️ Progress</option>
+                            <option value="Completed" className="bg-white text-slate-800 font-medium">✅ Done</option>
                           </select>
                         </td>
                       </tr>
@@ -372,48 +405,48 @@ export default function App() {
 
           {/* Manage Staff Modal */}
           {showStaffModal && (
-            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000] p-4">
-              <div className="bg-white p-6 rounded-xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-2xl">
-                <h3 className="text-center text-lg font-bold text-gray-800 mb-4">👥 Pamahalaan ang Staff</h3>
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
+              <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl border border-slate-100">
+                <h3 className="text-center text-lg font-bold text-slate-800 mb-4">👥 Pamahalaan ang Staff</h3>
                 
                 <form onSubmit={handleAddStaff} className="flex gap-2 mb-4">
-                  <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-green-500" />
-                  <button type="submit" className="p-2 px-3 bg-green-600 text-white rounded font-bold text-sm hover:bg-green-700">+ Add</button>
+                  <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
+                  <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-sm transition">+</button>
                 </form>
 
-                <div className="border-t border-gray-100 pt-3">
-                  <label className="text-xs font-bold text-gray-500 block mb-2">Kasalukuyang Listahan:</label>
+                <div className="border-t border-slate-100 pt-3">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Kasalukuyang Listahan:</label>
                   {assistants.length === 0 ? (
-                    <p className="text-xs text-gray-400 text-center py-2">Walang nakatalang staff.</p>
+                    <p className="text-xs text-slate-400 text-center py-3">Walang nakatalang staff.</p>
                   ) : (
-                    <ul className="list-none p-0 m-0">
+                    <ul className="list-none p-0 m-0 divide-y divide-slate-50">
                       {assistants.map((name, index) => (
-                        <li key={index} className="flex justify-between items-center py-2 border-b border-gray-50 text-sm text-gray-700">
-                          <span>{name}</span>
-                          <button type="button" onClick={() => handleRemoveStaff(name)} className="bg-transparent text-red-600 font-bold border-none cursor-pointer hover:scale-110 transition-transform">❌</button>
+                        <li key={index} className="flex justify-between items-center py-2.5 text-sm text-slate-700">
+                          <span className="font-medium">👤 {name}</span>
+                          <button type="button" onClick={() => handleRemoveStaff(name)} className="bg-transparent text-slate-400 hover:text-rose-600 font-bold border-none cursor-pointer hover:scale-110 transition-transform">❌</button>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
 
-                <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 p-2 bg-gray-200 text-gray-700 rounded font-bold text-sm hover:bg-gray-300">Isara</button>
+                <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 p-2 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Isara</button>
               </div>
             </div>
           )}
 
           {/* Change PIN Modal */}
           {showPinModal && (
-            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000] p-4">
-              <div className="bg-white p-6 rounded-xl w-full max-w-[320px] shadow-2xl">
-                <h3 className="text-center text-lg font-bold text-gray-800 mb-4">⚙️ Change Admin PIN</h3>
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
+              <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl border border-slate-100">
+                <h3 className="text-center text-lg font-bold text-slate-800 mb-4">⚙️ Change Admin PIN</h3>
                 <form onSubmit={handleChangePinSubmit} className="flex flex-col gap-3">
-                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2 border border-gray-300 rounded text-sm focus:outline-none" />
-                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2 border border-gray-300 rounded text-sm focus:outline-none" />
-                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2 border border-gray-300 rounded text-sm focus:outline-none" />
+                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
                   <div className="flex gap-2 mt-2">
-                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-200">Cancel</button>
-                    <button type="submit" className="flex-1 p-2 bg-green-600 text-white rounded text-sm font-bold hover:bg-green-700">Save</button>
+                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">Cancel</button>
+                    <button type="submit" className="flex-1 p-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm">Save</button>
                   </div>
                 </form>
               </div>
