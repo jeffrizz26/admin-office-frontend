@@ -9,6 +9,36 @@ const dashboardStyles = `
   .col-status { width: 120px; }
   .mobile-time-block { display: none; }
 
+  /* Custom dropdown styling para sa suwabe at kontroladong listahan ng staff */
+  .custom-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    max-height: 130px; /* Nilimitahan para magkasya kahit naka-mobile landscape */
+    overflow-y: auto;
+    z-index: 50;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    margin-top: 2px;
+    padding: 0;
+    list-style: none;
+  }
+  .custom-dropdown-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+  }
+  .custom-dropdown-item:hover {
+    background-color: #f1f5f9;
+    color: #1e40af;
+  }
+
   @media (max-width: 767px) {
     .col-track { width: 100px; }
     .col-time { display: none; }
@@ -31,22 +61,22 @@ export default function App() {
   const [formData, setFormData] = useState({
     firstName: '', middleName: '', lastName: '',
     purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular',
-    assistedBy: '' // 👈 Bagong field para sa nag-assist na staff
+    assistedBy: '' 
   });
   const [step, setStep] = useState(1);
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [transactions, setTransactions] = useState([]);
-  const [assistants, setAssistants] = useState([]); // 👈 Listahan ng active staff mula sa DB
-  const [newStaffName, setNewStaffName] = useState(''); // Input para sa pagdagdag ng staff
+  const [assistants, setAssistants] = useState([]); 
+  const [showStaffDropdown, setShowStaffDropdown] = useState(false); // 👈 Taga-kontrol kung bukas ang listahan ng staff
+  const [newStaffName, setNewStaffName] = useState(''); 
   const [loading, setLoading] = useState(true);
   const [sessionPin, setSessionPin] = useState(() => localStorage.getItem('active_session_pin') || '');
   const [showPinModal, setShowPinModal] = useState(false);
-  const [showStaffModal, setShowStaffModal] = useState(false); // 👈 Modal para sa pamamahala ng staff
+  const [showStaffModal, setShowStaffModal] = useState(false); 
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
 
   const BACKEND_URL = 'https://admin-office-backend.vercel.app'; 
 
-  // Sabay na i-fe-fetch ang mga transaksyon at listahan ng staff
   useEffect(() => {
     const fetchAssistants = async () => {
       try {
@@ -103,7 +133,6 @@ export default function App() {
     } catch (error) { alert('❌ Server Offline!'); }
   };
 
-  // Mga Functions para sa Pagdagdag at Pagbura ng Staff (Admin Control)
   const handleAddStaff = async (e) => {
     e.preventDefault();
     if (!newStaffName.trim()) return;
@@ -199,6 +228,11 @@ export default function App() {
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
 
+  // Filter para sa auto-suggest ng staff base sa tinatype ni teacher
+  const filteredAssistants = assistants.filter(name => 
+    name.toLowerCase().includes(formData.assistedBy.toLowerCase())
+  );
+
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '12px' }}>
       <style>{dashboardStyles}</style>
@@ -257,13 +291,38 @@ export default function App() {
                 <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
               )}
 
-              {/* 🛠️ TYPEBOX / DATALIST: Pwedeng mamili o mag-type si Teacher */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {/* 🛠️ BAGONG RE-BUILT CUSTOM TYPEBOX DROPDOWN (100% Mobile Landscape Friendly) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}>
                 <label style={{ fontWeight: 'bold', fontSize: '14px' }}>Sino ang nag-assist sa iyo? (Staff Name):</label>
-                <input type="text" name="assistedBy" list="staff-list" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
-                <datalist id="staff-list">
-                  {assistants.map((name, i) => <option key={i} value={name} />)}
-                </datalist>
+                <input 
+                  type="text" 
+                  name="assistedBy" 
+                  autoComplete="off"
+                  placeholder="I-type o piliin ang pangalan..." 
+                  value={formData.assistedBy} 
+                  onChange={handleInputChange} 
+                  onFocus={() => setShowStaffDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} // 200ms para umabot ang click sa item bago magsara
+                  required 
+                  style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc', width: '100%', boxSizing: 'border-box' }} 
+                />
+                
+                {showStaffDropdown && filteredAssistants.length > 0 && (
+                  <ul className="custom-dropdown-list">
+                    {filteredAssistants.map((name, i) => (
+                      <li 
+                        key={i} 
+                        className="custom-dropdown-item"
+                        onMouseDown={() => {
+                          setFormData({ ...formData, assistedBy: name });
+                          setShowStaffDropdown(false);
+                        }}
+                      >
+                        👤 {name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <button type="submit" style={{ padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>NEXT STEP ➡️</button>
@@ -372,7 +431,6 @@ export default function App() {
             </div>
           )}
 
-          {/* 👥 MODAL: Pamamahala ng Listahan ng Staff (Dito nagdadagdag/nagbabawas ang Admin) */}
           {showStaffModal && (
             <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', width: '100%', maxWidth: '360px', maxHeight: '80vh', overflowY: 'auto' }}>
