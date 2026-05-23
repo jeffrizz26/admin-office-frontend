@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function App() {
-  const [view, setView] = useState('form');
+  const [view, setView] = useState('form'); // Default ay 'form'
   const [dashboardTab, setDashboardTab] = useState('active'); 
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [searchTerm, setSearchTerm] = useState(''); 
@@ -23,6 +23,13 @@ export default function App() {
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
 
   const BACKEND_URL = 'https://admin-office-backend.vercel.app'; 
+
+  // Security Guard: Pwersahang ilipat sa login kung susubukang i-access ang dashboard nang walang PIN
+  useEffect(() => {
+    if (view === 'dashboard' && !sessionPin) {
+      setView('login');
+    }
+  }, [view, sessionPin]);
 
   useEffect(() => {
     const fetchAssistants = async () => {
@@ -181,18 +188,16 @@ export default function App() {
 
   const getStatusDropdownClass = (status) => {
     switch (status) {
-      case 'In Progress':
-        return 'bg-blue-50 text-blue-700 border-blue-200 focus:ring-blue-400';
-      case 'Completed':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200 focus:ring-emerald-400';
-      default: 
-        return 'bg-amber-50 text-amber-700 border-amber-200 focus:ring-amber-400';
+      case 'In Progress': return 'bg-blue-50 text-blue-700 border-blue-200 focus:ring-blue-400';
+      case 'Completed': return 'bg-emerald-50 text-emerald-700 border-emerald-200 focus:ring-emerald-400';
+      default: return 'bg-amber-50 text-amber-700 border-amber-200 focus:ring-amber-400';
     }
   };
 
   return (
     <div className="font-sans bg-slate-50 min-h-screen p-4 md:p-6 antialiased text-slate-800">
       
+      {/* NAVIGATION - Updated logic */}
       <div className="flex justify-center gap-3 mb-6">
         <button onClick={() => setView('form')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'form' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📄 Form</button>
         <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'dashboard' || view === 'login' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📊 Dashboard</button>
@@ -203,11 +208,9 @@ export default function App() {
           {step === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4">
               <h2 className="text-center text-xl font-bold text-slate-800 mb-1">Admin Office Transaction</h2>
-              
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
-
               <div className="flex flex-col gap-1.5">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Urgency / Priority:</label>
                 <div className="flex gap-6 p-1">
@@ -215,8 +218,6 @@ export default function App() {
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
               </div>
-
-              {/* MODIFIED: Added bg-[length:1.25rem] to control size */}
               <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                 <option value="">-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
@@ -228,8 +229,6 @@ export default function App() {
                 <option value="Request Supply / Equipment">Request Supply / Equipment</option>
                 <option value="Others">Others</option>
               </select>
-
-              {/* MODIFIED: Added bg-[length:1.25rem] */}
               {formData.purpose === "Submit Document(s) for Processing" && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
@@ -238,8 +237,6 @@ export default function App() {
                   <option value="Permit to Teach">Permit to Teach</option>
                 </select>
               )}
-
-              {/* MODIFIED: Added bg-[length:1.25rem] */}
               {formData.purpose === 'Request Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
@@ -248,35 +245,23 @@ export default function App() {
                   <option value="ITR">ITR</option>
                 </select>
               )}
-
               {formData.purpose === "Others" && (
                 <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
               )}
-
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
-                <input 
-                  type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
-                  onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
-                  className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs" 
-                />
-                
+                <input type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs" />
                 {showStaffDropdown && filteredAssistants.length > 0 && (
                   <ul className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg max-h-[140px] overflow-y-auto z-50 shadow-lg mt-1 p-1 list-none">
                     {filteredAssistants.map((name, i) => (
-                      <li key={i} className="p-2.5 cursor-pointer text-sm text-slate-700 rounded-md text-left hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                        onMouseDown={() => { setFormData({ ...formData, assistedBy: name }); setShowStaffDropdown(false); }}>
-                        👤 {name}
-                      </li>
+                      <li key={i} className="p-2.5 cursor-pointer text-sm text-slate-700 rounded-md text-left hover:bg-slate-50 hover:text-blue-600 transition-colors" onMouseDown={() => { setFormData({ ...formData, assistedBy: name }); setShowStaffDropdown(false); }}>👤 {name}</li>
                     ))}
                   </ul>
                 )}
               </div>
-
               <button type="submit" className="p-3 mt-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition duration-200 uppercase tracking-wide">NEXT STEP ➡️</button>
             </form>
           )}
-
           {step === 2 && (
             <div className="flex flex-col gap-4">
               <h2 className="text-center text-xl font-bold text-slate-800">Confirm Information</h2>
@@ -291,7 +276,6 @@ export default function App() {
               </div>
             </div>
           )}
-
           {step === 3 && (
             <div className="text-center py-6">
               <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-inner">✓</div>
@@ -323,20 +307,17 @@ export default function App() {
               <button onClick={() => setShowStaffModal(true)} className="p-2 px-3.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg font-semibold text-xs hover:bg-slate-100 transition">👥 Staff</button>
               <button onClick={() => setShowPinModal(true)} className="p-2 px-3.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg font-semibold text-xs hover:bg-slate-100 transition">🔑 PIN</button>
               <button onClick={exportToCSV} className="p-2 px-3.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg font-semibold text-xs hover:bg-emerald-100 transition">📥 CSV</button>
-              <button onClick={() => { setView('form'); localStorage.removeItem('active_session_pin'); setSessionPin(''); }} className="p-2 px-3.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg font-bold text-xs hover:bg-rose-100 transition">🔒 Logout</button>
+              <button onClick={() => { localStorage.removeItem('active_session_pin'); setSessionPin(''); setView('form'); }} className="p-2 px-3.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg font-bold text-xs hover:bg-rose-100 transition">🔒 Logout</button>
             </div>
           </div>
-
           <div className="relative mb-5">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-sm">🔍</span>
             <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 pl-9 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
           </div>
-
           <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-xl border border-slate-100">
             <button onClick={() => setDashboardTab('active')} className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'active' ? 'bg-white text-blue-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>Active ({transactions.filter(t => t.status !== 'Completed').length})</button>
             <button onClick={() => setDashboardTab('archive')} className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'archive' ? 'bg-white text-slate-700 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>Archives ({transactions.filter(t => t.status === 'Completed').length})</button>
           </div>
-
           {loading ? (
             <p className="text-center text-slate-500 font-medium py-6 text-sm animate-pulse">Loading dashboard records...</p>
           ) : filteredTransactions.length === 0 ? (
@@ -355,32 +336,17 @@ export default function App() {
                 <tbody className="divide-y divide-slate-100">
                   {filteredTransactions.map((tx) => {
                     const orasFormat = tx.createdAt ? new Date(tx.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '---';
-
                     return (
                       <tr key={tx._id} className="hover:bg-slate-50 transition-colors duration-200">
-                        <td className="px-6 py-4 align-middle">
-                          <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-md font-mono font-bold text-[13px] border border-slate-200 shadow-sm">{tx.trackingNumber}</span>
-                        </td>
+                        <td className="px-6 py-4 align-middle"><span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-md font-mono font-bold text-[13px] border border-slate-200 shadow-sm">{tx.trackingNumber}</span></td>
                         <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
-                          <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5">
-                            <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
-                          </div>
-                          <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-                            <span className="font-medium text-slate-400">Assisted by:</span> 
-                            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium border border-slate-200/60">{tx.assistedBy || 'None'}</span>
-                          </div>
+                          <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5"><span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span></div>
+                          <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5"><span className="font-medium text-slate-400">Assisted by:</span> <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium border border-slate-200/60">{tx.assistedBy || 'None'}</span></div>
                         </td>
-                        <td className="px-6 py-4 align-middle text-slate-500 text-[13.5px] font-medium">
-                          {orasFormat}
-                        </td>
+                        <td className="px-6 py-4 align-middle text-slate-500 text-[13.5px] font-medium">{orasFormat}</td>
                         <td className="px-6 py-4 align-middle text-center">
-                          {/* MODIFIED: Added bg-[length:1.25rem] here as well */}
-                          <select 
-                            value={tx.status || 'Pending'} 
-                            onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}
-                          >
+                          <select value={tx.status || 'Pending'} onChange={(e) => handleStatusChange(tx._id, e.target.value)} className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}>
                             <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
                             <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
                             <option value="Completed" className="bg-white text-slate-800">✅ Done</option>
@@ -393,22 +359,17 @@ export default function App() {
               </table>
             </div>
           )}
-
           {showStaffModal && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
               <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl border border-slate-100">
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">👥 Pamahalaan ang Staff</h3>
-                
                 <form onSubmit={handleAddStaff} className="flex gap-2 mb-4">
                   <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
                   <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-sm transition">+</button>
                 </form>
-
                 <div className="border-t border-slate-100 pt-3">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Kasalukuyang Listahan:</label>
-                  {assistants.length === 0 ? (
-                    <p className="text-xs text-slate-400 text-center py-3">Walang nakatalang staff.</p>
-                  ) : (
+                  {assistants.length === 0 ? <p className="text-xs text-slate-400 text-center py-3">Walang nakatalang staff.</p> : (
                     <ul className="list-none p-0 m-0 divide-y divide-slate-50">
                       {assistants.map((name, index) => (
                         <li key={index} className="flex justify-between items-center py-2.5 text-sm text-slate-700">
@@ -419,12 +380,10 @@ export default function App() {
                     </ul>
                   )}
                 </div>
-
                 <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 p-2 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Isara</button>
               </div>
             </div>
           )}
-
           {showPinModal && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
               <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl border border-slate-100">
@@ -441,7 +400,6 @@ export default function App() {
               </div>
             </div>
           )}
-
         </div>
       )}
     </div>
