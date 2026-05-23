@@ -203,13 +203,13 @@ export default function App() {
       {view === 'form' && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[460px] mx-auto">
           {step === 1 && (
-            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-5">
+            <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4">
               <h2 className="text-center text-xl font-bold text-slate-800 mb-1">Admin Office Transaction</h2>
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
 
-              <div className="flex flex-col gap-1.5 mt-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Urgency / Priority:</label>
                 <div className="flex gap-6 p-1">
                   <label className="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="urgency" value="Regular" checked={formData.urgency === 'Regular'} onChange={handleInputChange} className="w-4 h-4 text-blue-600" /> Regular</label>
