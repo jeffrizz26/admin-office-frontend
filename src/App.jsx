@@ -205,6 +205,7 @@ export default function App() {
           {step === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="flex flex-col gap-4">
               <h2 className="text-center text-xl font-bold text-slate-800 mb-1">Admin Office Transaction</h2>
+              
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
               <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
@@ -251,8 +252,8 @@ export default function App() {
                 <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
               )}
 
-              <div className="flex flex-col gap-1.5 relative mt-4">
-                <label className="font-bold text-[13px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
+              <div className="flex flex-col gap-1.5 relative">
+                <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
                   onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
@@ -342,8 +343,6 @@ export default function App() {
           ) : filteredTransactions.length === 0 ? (
             <p className="text-center text-slate-400 py-8 text-sm border border-dashed border-slate-200 rounded-xl">No transactions found.</p>
           ) : (
-            
-            /* DITO ANG FINAL FIX PARA SA TABLE: Gumamit tayo ng min-w-max at tinanggal ang lahat ng sumosobrang fixed widths */
             <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm w-full">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-max">
                 <thead>
@@ -393,8 +392,6 @@ export default function App() {
                 </tbody>
               </table>
             </div>
-            /* KATAPUSAN NG TABLE FIX */
-
           )}
 
           {/* Manage Staff Modal */}
