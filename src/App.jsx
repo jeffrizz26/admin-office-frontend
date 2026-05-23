@@ -251,8 +251,7 @@ export default function App() {
                 <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
               )}
 
-              {/* DITO ANG PAGBABAGO: Nilagyan ng mt-4 at pinalaki nang konti ang font */}
-              <div className="flex flex-col gap-1.5 relative mt-2">
+              <div className="flex flex-col gap-1.5 relative mt-1.5">
                 <label className="font-bold text-[13px] uppercase tracking-wider text-slate-600">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
                   type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
@@ -343,14 +342,14 @@ export default function App() {
           ) : filteredTransactions.length === 0 ? (
             <p className="text-center text-slate-400 py-8 text-sm border border-dashed border-slate-200 rounded-xl">No transactions found.</p>
           ) : (
-            <div className="overflow-x-auto border border-slate-200/70 rounded-xl shadow-inner bg-white">
-              <table className="w-full border-collapse text-left text-sm table-fixed md:min-w-[850px]">
+            <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
-                  <tr className="bg-slate-50/70 border-b border-slate-200/60">
-                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle w-[105px] min-w-[105px] md:w-[15%]">Tracking No.</th>
-                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle w-auto md:w-[48%]">Detalye ng Transaksyon</th>
-                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle hidden md:table-cell md:w-[22%]">Oras/Petsa</th>
-                    <th className="p-3.5 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 align-middle w-[115px] min-w-[115px] md:w-[15%] text-right md:text-left">Status</th>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[140px]">Tracking No.</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500">Detalye ng Transaksyon</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[180px]">Oras/Petsa</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[140px] text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -358,31 +357,32 @@ export default function App() {
                     const orasFormat = tx.createdAt ? new Date(tx.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '---';
 
                     return (
-                      <tr key={tx._id} className="hover:bg-slate-50/50 transition-colors duration-150">
-                        <td className="p-3.5 px-4 align-top font-medium text-xs md:text-sm whitespace-nowrap">
-                          <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-md font-mono font-bold tracking-tight text-[11px] md:text-xs border border-slate-200/40 shadow-2xs">{tx.trackingNumber}</span>
+                      <tr key={tx._id} className="hover:bg-slate-50 transition-colors duration-200">
+                        <td className="p-4 align-middle">
+                          <span className="bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-md font-mono font-bold text-xs border border-slate-200 shadow-sm">{tx.trackingNumber}</span>
                         </td>
-                        <td className="p-3.5 px-4 align-top">
-                          <div className="font-bold text-slate-900 text-[14px] md:text-[15px] tracking-tight">{tx.lastName}, {tx.firstName}</div>
-                          <div className="text-slate-600 mt-1 text-xs flex items-center gap-1">
-                            <span>📌</span> <span className="font-medium text-slate-700">{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
+                        <td className="p-4 align-middle">
+                          <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
+                          <div className="text-slate-600 mt-1 text-sm flex items-center gap-1.5">
+                            <span>📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
                           </div>
-                          <div className="text-[11px] md:text-xs text-slate-500 mt-1.5 flex items-center gap-1.5">
+                          <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                             <span>👤 Assisted by:</span> 
-                            <span className="bg-slate-50 text-slate-700 border border-slate-100 px-2 py-0.5 rounded-md font-medium">{tx.assistedBy || 'None'}</span>
+                            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium border border-slate-200/60">{tx.assistedBy || 'None'}</span>
                           </div>
-                          <div className="block md:hidden text-[11px] text-slate-400 mt-2 font-medium">🕒 {orasFormat}</div>
                         </td>
-                        <td className="p-3.5 px-4 align-top hidden md:table-cell text-slate-500 text-xs md:text-sm whitespace-nowrap pt-4 font-medium">{orasFormat}</td>
-                        <td className="p-3.5 px-4 align-top text-right md:text-left">
+                        <td className="p-4 align-middle text-slate-500 text-sm font-medium">
+                          {orasFormat}
+                        </td>
+                        <td className="p-4 align-middle text-center">
                           <select 
                             value={tx.status || 'Pending'} 
                             onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            className={`p-1.5 px-2 rounded-lg text-[11px] md:text-xs font-bold border cursor-pointer w-full max-w-[115px] text-center shadow-2xs focus:outline-none focus:ring-2 transition-all duration-200 ${getStatusDropdownClass(tx.status)}`}
+                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 ${getStatusDropdownClass(tx.status)}`}
                           >
-                            <option value="Pending" className="bg-white text-slate-800 font-medium">🕒 Pending</option>
-                            <option value="In Progress" className="bg-white text-slate-800 font-medium">⚙️ Progress</option>
-                            <option value="Completed" className="bg-white text-slate-800 font-medium">✅ Done</option>
+                            <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
+                            <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
+                            <option value="Completed" className="bg-white text-slate-800">✅ Done</option>
                           </select>
                         </td>
                       </tr>
