@@ -165,20 +165,35 @@ export default function App() {
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
-  // FIXED: Added "Other Details" functionality inside CSV Generation
+  // FIXED: Added Date & Time functionality inside CSV Generation
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
-    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Other Details", "Assisted By", "Status"];
-    const rows = filteredTransactions.map(tx => [
-      tx.trackingNumber, 
-      tx.firstName, 
-      tx.lastName, 
-      tx.urgency, 
-      tx.purpose, 
-      tx.otherSpecify || '', 
-      tx.assistedBy || 'None', 
-      tx.status
-    ]);
+    
+    // 1. Add "Date & Time" to headers
+    const headers = ["Tracking Number", "Date & Time", "First Name", "Last Name", "Priority", "Purpose", "Other Details", "Assisted By", "Status"];
+    
+    const rows = filteredTransactions.map(tx => {
+      // 2. Format the date just like you do in the dashboard table
+      const formattedDate = tx.createdAt 
+        ? new Date(tx.createdAt).toLocaleString('en-US', { 
+            month: 'short', day: 'numeric', year: 'numeric', 
+            hour: '2-digit', minute: '2-digit', hour12: true 
+          }) 
+        : '---';
+
+      return [
+        tx.trackingNumber, 
+        formattedDate, // 3. Insert formatted date into the row array
+        tx.firstName, 
+        tx.lastName, 
+        tx.urgency, 
+        tx.purpose, 
+        tx.otherSpecify || '', 
+        tx.assistedBy || 'None', 
+        tx.status
+      ];
+    });
+    
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
@@ -289,7 +304,6 @@ export default function App() {
               <h2 className="text-center text-xl font-bold text-slate-800">Confirm Information</h2>
               <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
                 <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
-                {/* FIXED: Show the customized input specifications for 'Others' step preview directly on validation screen */}
                 <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`} {formData.purpose === 'Others' && formData.otherSpecify && `(${formData.otherSpecify})`}</span></p>
                 <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
               </div>
@@ -373,7 +387,6 @@ export default function App() {
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5">
                             <span className="text-rose-500">📌</span> 
-                            {/* FIXED: Conditionally rendering the 'otherSpecify' text string right alongside purpose title column cells */}
                             <span>
                               {tx.purpose} 
                               {tx.subPurpose ? ` (${tx.subPurpose})` : ''}
@@ -454,7 +467,6 @@ export default function App() {
               </div>
             </div>
           )}
-
         </div>
       )}
     </div>
