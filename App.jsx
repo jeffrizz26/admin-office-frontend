@@ -125,7 +125,7 @@ export default function App() {
                 <option value="File Form 6">File Form 6</option>
                 <option value="Request Document(s)">Request Document(s)</option>
                 <option value="Submit Document(s) for Processing">Submit Document(s) for Processing</option>
-                <option value="Recieve Documents">Recieve Documents</option>
+                <option value="Receive Documents">Receive Documents</option>
                 <option value="Request Supply / Equipment">Request Supply / Equipment</option>
                 <option value="Request for Fund (Canteen)">Request for Fund (Canteen)</option>
                 <option value="Others">Others</option>
@@ -159,7 +159,7 @@ export default function App() {
                 </div>
               )}
 
-              {formData.purpose === 'Recieve Documents' && (
+              {formData.purpose === 'Receive Documents' && (
                 <div style={{ backgroundColor: '#f3e8ff', padding: '15px', borderRadius: '5px', border: '1px solid #e9d5ff' }}>
                   <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ccc' }}>
                     <option value="">-- Choose Type --</option>
