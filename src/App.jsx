@@ -246,6 +246,8 @@ export default function App() {
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
                   <option value="ITR">ITR</option>
+                  <option value="SERVICE RECORD">SERVICE RECORD</option>
+                  <option value="CERTIFICATE OF EMPLOYMENT (COE)">CERTIFICATE OF EMPLOYMENT (COE)</option>
                 </select>
               )}
 
