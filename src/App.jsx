@@ -173,7 +173,7 @@ export default function App() {
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
-  // KASADO: Maayos na Kolum ng "Specific Details" Para Siguradong Pumasok sa Excel/CSV
+ // KASADO: Maayos na Kolum ng "Specific Details" Para Siguradong Pumasok sa Excel/CSV
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
     const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Specific Details", "Assisted By", "Status"];
@@ -183,10 +183,18 @@ export default function App() {
       tx.lastName, 
       tx.urgency, 
       tx.purpose, 
-      tx.otherSpecify || 'N/A', // Heto para sa nilalaman ng Inquiry o Others box!
+      // 🔥 KONDISYON: Kung Request Supply, ibigay ang kagamitan. Kung hindi, ibigay ang otherSpecify.
+      tx.purpose === "Request Supply / Equipment" 
+        ? (tx.equipmentName || 'N/A') 
+        : (tx.otherSpecify || 'N/A'), 
       tx.assistedBy || 'None', 
       tx.status
     ]);
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  };
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
