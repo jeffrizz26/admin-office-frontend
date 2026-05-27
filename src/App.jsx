@@ -187,11 +187,10 @@ export default function App() {
       tx.lastName, 
       tx.urgency, 
       tx.purpose, 
-      // 🔥 3-WAY FALLBACK: Sinasalo ang Kagamitan, Dokumento, o Inquiry/Others
+
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
-      ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
-      (tx.otherSpecify || 'N/A'),
-      
+        ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
+    (tx.otherSpecify || 'N/A'),
       tx.assistedBy || 'None', 
       tx.status
     ]);
