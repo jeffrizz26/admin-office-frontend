@@ -414,15 +414,23 @@ export default function App() {
                         <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1.5 text-sm flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
-                            </div>
-                            {/* KASADO: Ipinapakita ang text description ng Inquiry o Others box nang direkta sa Screen gamit ang Tailwind styles mo */}
-                            {tx.otherSpecify && (
-                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
-                                ↳ Detalye: {tx.otherSpecify}
-                              </span>
-                            )}
+                          <div className="flex items-center gap-1.5">
+  <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
+</div>
+
+{/* KASADO: Ipinapakita ang text description ng Inquiry o Others box nang direkta sa Screen gamit ang Tailwind styles mo */}
+{tx.otherSpecify && (
+  <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+    ↳ Detalye: {tx.otherSpecify}
+  </span>
+)}
+
+{/* 🌟 BAGONG DAGDAG: Lalabas ang asul na text na may gamit kapag Request Supply / Equipment ang pinili */}
+{tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
+  <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
+    ↳ Kagamitan: {tx.equipmentName}
+  </span>
+)}
                           </div>
                           <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                             <span className="font-medium text-slate-400">Assisted by:</span> 
