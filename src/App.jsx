@@ -224,7 +224,7 @@ export default function App() {
                 <option value="File Form 6">File Form 6</option>
                 <option value="Request Document(s)">Request Document(s)</option>
                 <option value="Submit Document(s) for Processing">Submit Document(s) for Processing</option>
-                <option value="Recieve Document(s)">Recieve Document(s)</option>
+                <option value="Receive Document(s)">Receive Document(s)</option>
                 <option value="Request Supply / Equipment">Request Supply / Equipment</option>
                 <option value="Others">Others</option>
               </select>
@@ -236,6 +236,7 @@ export default function App() {
                   <option value="Travel Authority (Local)">Travel Authority (Local)</option>
                   <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
                   <option value="Permit to Teach">Permit to Teach</option>
+                  <option value="Permit to Study">Permit to Study</option>
                 </select>
               )}
 
