@@ -279,6 +279,28 @@ export default function App() {
                 />
               )}
 
+            
+            {formData.purpose === "Request Supply / Equipment" && (
+          <div className="mt-4 mb-4 text-left">
+        <label 
+              htmlFor="equipmentName" 
+          className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide"
+    >
+      Anong supply / kagamitan ang kailangan? (Optional):
+    </label>
+    <input
+      type="text"
+      id="equipmentName"
+      name="equipmentName"
+      value={formData.equipmentName || ""}
+      onChange={handleInputChange}
+      placeholder="Please type Tool or Equipment name..."
+      autoComplete="on"
+      className="w-full p-3 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 box-border"
+    />
+  </div>
+)}
+
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
