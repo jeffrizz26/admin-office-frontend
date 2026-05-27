@@ -252,10 +252,17 @@ export default function App() {
                 </select>
               )}
 
-              {formData.purpose === "Others" && (
-                <input type="text" name="otherSpecify" placeholder="Please specify" value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" />
-              )}
-
+             {(formData.purpose === "Others" || formData.purpose === "Inquiry") && (
+              <input 
+                  type="text" 
+                  name="otherSpecify" 
+                  placeholder={formData.purpose === "Inquiry" ? "Ano ang iyong itatanong?" : "Please specify"} 
+                  value={formData.otherSpecify} 
+                  onChange={handleInputChange} 
+                 required 
+                  className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" 
+  />
+)}
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
