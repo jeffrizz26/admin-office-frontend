@@ -171,7 +171,7 @@ export default function App() {
 
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
-    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''} ${tx.urgencyDetails || ''}`.toLowerCase();
+    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.subPurpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''} ${tx.urgencyDetails || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
@@ -188,7 +188,7 @@ export default function App() {
       tx.purpose, 
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
         ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
-        (tx.otherSpecify || 'N/A'),
+        (tx.otherSpecify || 'N/A',
       tx.assistedBy || 'None', 
       tx.status
     ]);
@@ -238,14 +238,12 @@ export default function App() {
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
 
-                {/* 📅 DYNAMIC URGENT FIELDS */}
                 {formData.urgency === "Urgent" && (
                   <div className="mt-2 flex flex-col gap-3 text-left bg-rose-50/50 p-3 rounded-xl border border-rose-100 animate-fadeIn">
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">📅 Date Needed / Kailan Kailangan?:</label>
                       <input type="date" name="dateNeeded" value={formData.dateNeeded || ""} onChange={handleInputChange} required className="p-2 text-sm rounded-lg border border-rose-300 bg-white text-slate-700 focus:outline-none focus:border-rose-500" />
                     </div>
-                    {/* 🔥 NAPAKASALONG INPUT: Rason para sa Detalye ng Urgency */}
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">💬 Detalye / Dahilan ng Pagka-Urgent:</label>
                       <input type="text" name="urgencyDetails" value={formData.urgencyDetails || ""} onChange={handleInputChange} required placeholder="Hal. Para sa DepEd deadline bukas / Pirma bago umalis" className="p-2 text-sm rounded-lg border border-rose-300 bg-white text-slate-700 focus:outline-none focus:border-rose-500" />
@@ -432,9 +430,8 @@ export default function App() {
                             
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-rose-500">📌</span> 
-                              <span className="font-medium text-slate-900">
-                                {tx.purpose} {tx.subPurpose && tx.subPurpose !== "Others" ? `(${tx.subPurpose})` : ''}
-                              </span>
+                              {/* Clean Main Purpose Output (Walang side details!) */}
+                              <span className="font-medium text-slate-900">{tx.purpose}</span>
 
                               {tx.urgency === "Urgent" && (
                                 <span className="ml-1 px-2 py-0.5 text-[11px] font-bold bg-rose-50 text-rose-600 rounded-md border border-rose-200 animate-pulse">
@@ -443,24 +440,31 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* 🔥 KASADO: Dito lilitaw ang Detalye/Rason kung bakit Urgent */}
+                            {/* Urgent Reason */}
                             {tx.urgency === "Urgent" && tx.urgencyDetails && (
                               <span className="text-rose-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
                                 ↳ Detalye: {tx.urgencyDetails}
                               </span>
                             )}
 
-                            {/* Custom Standard Document Details ("Others") */}
-                            {tx.otherSpecify && (
+                            {/* Standard Sub-Purpose (Dito na lilitaw as asul na Detalye gaya ng COE/Travel Authority) */}
+                            {tx.subPurpose && tx.subPurpose !== "Others" && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
-                                ↳ Dokumento: {tx.otherSpecify}
+                                ↳ Detalye: {tx.subPurpose}
                               </span>
                             )}
 
-                            {/* Supply/Equipment details */}
+                            {/* Custom/Others Input Text */}
+                            {tx.otherSpecify && (
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Detalye: {tx.otherSpecify}
+                              </span>
+                            )}
+
+                            {/* Supply/Equipment Name */}
                             {tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
-                              <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5">
-                                ↳ Kagamitan: {tx.equipmentName}
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Detalye: {tx.equipmentName}
                               </span>
                             )}
                           </div>
