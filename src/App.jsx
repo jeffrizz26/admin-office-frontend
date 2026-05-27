@@ -173,7 +173,7 @@ export default function App() {
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
- // KASADO: Maayos na Kolum ng "Specific Details" Para Siguradong Pumasok sa Excel/CSV
+  // KASADO: Maayos na Kolum ng "Specific Details" Para Siguradong Pumasok sa Excel/CSV
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
     const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Specific Details", "Assisted By", "Status"];
@@ -183,9 +183,11 @@ export default function App() {
       tx.lastName, 
       tx.urgency, 
       tx.purpose, 
-      tx.purpose === "Request Supply / Equipment" 
-        ? (tx.equipmentName || 'N/A') 
-        : (tx.otherSpecify || 'N/A'), 
+      // 🔥 3-WAY FALLBACK: Sinasalo ang Kagamitan, Dokumento, o Inquiry/Others
+      tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
+      ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose || 'N/A') :
+      (tx.otherSpecify || 'N/A'),
+      
       tx.assistedBy || 'None', 
       tx.status
     ]);
