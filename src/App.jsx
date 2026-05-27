@@ -8,7 +8,7 @@ export default function App() {
   const [formData, setFormData] = useState({
     firstName: '', middleName: '', lastName: '',
     purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular',
-    assistedBy: '' 
+    assistedBy: '', equipmentName: ''
   });
   const [step, setStep] = useState(1);
   const [generatedTracking, setGeneratedTracking] = useState('');
@@ -58,24 +58,23 @@ export default function App() {
   }, [view, sessionPin]);
 
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handlePurposeChange = (e) => setFormData({ ...formData, purpose: e.target.value, subPurpose: '', otherSpecify: '', dateNeeded: '' });
+  const handlePurposeChange = (e) => setFormData({ ...formData, purpose: e.target.value, subPurpose: '', otherSpecify: '', dateNeeded: '', equipmentName: '' });
   
   const resetForm = () => {
-    setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular', assistedBy: '' });
+    setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular', assistedBy: '', equipmentName: '' });
     setGeneratedTracking(''); setStep(1);
   };
 
- // KASADO: Masusing Payload Filter Bago Ipasok sa Database Para Walang Data na Mawala
+  // KASADO: Nilagyan ng dynamic control para sa Date Needed at Document Filters bago pumasok sa MongoDB
   const saveToDatabase = async () => {
     try {
-      // 🌟 DAGDAG NA LOGIC: Chine-tsek kung nag-"Others" sa mga dokumento
       const isOthersDocument = ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others";
 
       const payload = {
         ...formData,
         subPurpose: ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) ? formData.subPurpose : "",
-        // 🌟 UPDATE: Pinapayagan na si otherSpecify kapag 'isOthersDocument' ay TRUE
-        otherSpecify: (formData.purpose === "Others" || formData.purpose === "Inquiry" || isOthersDocument) ? formData.otherSpecify : ""
+        otherSpecify: (formData.purpose === "Others" || formData.purpose === "Inquiry" || isOthersDocument) ? formData.otherSpecify : "",
+        dateNeeded: formData.urgency === "Urgent" ? formData.dateNeeded : ""
       };
 
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
@@ -170,27 +169,26 @@ export default function App() {
     } catch (error) { alert("❌ Bigong ma-update ang PIN."); }
   };
 
-  // KASADO: Idinagdag si tx.otherSpecify sa Search Filter Para Nahahanap Din ang Detalye ng Inquiry
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
     const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
-  // KASADO: Maayos na Kolum ng "Specific Details" Para Siguradong Pumasok sa Excel/CSV
+  // KASADO: Idinagdag ang "Date Needed" na kolum para malinis at hiwalay sa Excel/CSV
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
-    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Specific Details", "Assisted By", "Status"];
+    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Date Needed", "Purpose", "Specific Details", "Assisted By", "Status"];
     const rows = filteredTransactions.map(tx => [
       tx.trackingNumber, 
       tx.firstName, 
       tx.lastName, 
       tx.urgency, 
+      tx.urgency === "Urgent" ? (tx.dateNeeded ? new Date(tx.dateNeeded).toLocaleDateString() : 'ASAP') : 'N/A',
       tx.purpose, 
-
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
         ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
-    (tx.otherSpecify || 'N/A'),
+        (tx.otherSpecify || 'N/A'),
       tx.assistedBy || 'None', 
       tx.status
     ]);
@@ -239,9 +237,26 @@ export default function App() {
                   <label className="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="radio" name="urgency" value="Regular" checked={formData.urgency === 'Regular'} onChange={handleInputChange} className="w-4 h-4 text-blue-600" /> Regular</label>
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
+
+                {/* 📅 DYNAMIC DATE PICKER BOX (Lalabas lang pag urgent) */}
+                {formData.urgency === "Urgent" && (
+                  <div className="mt-2 flex flex-col gap-1 text-left animate-fadeIn">
+                    <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">
+                      📅 Date Needed / Kailan Kailangan?:
+                    </label>
+                    <input
+                      type="date"
+                      name="dateNeeded"
+                      value={formData.dateNeeded || ""}
+                      onChange={handleInputChange}
+                      required
+                      className="p-2.5 text-sm rounded-lg border border-rose-300 bg-white text-slate-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
+                    />
+                  </div>
+                )}
               </div>
 
-        <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
+              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                 <option value="" disabled hidden>-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
                 <option value="Sign DTR/Summary of Absences">Sign DTR/Summary of Absences</option>
@@ -278,7 +293,7 @@ export default function App() {
                 </select>
               )}
 
-              {/* 🌟 3. RECEIVE DOCUMENT (KASADO NA!) */}
+              {/* 3. RECEIVE DOCUMENT */}
               {formData.purpose === 'Receive Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document to Receive --</option>
@@ -293,7 +308,7 @@ export default function App() {
                 </select>
               )}
 
-              {/* 🔥 SMART FALLBACK: Lalabas lang itong text field kapag may pumili ng "Others" sa kahit anong Dokumento sa itaas */}
+              {/* 🔥 SMART FALLBACK: Text field para sa Document "Others" */}
               {["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others" && (
                 <input 
                   type="text"
@@ -367,8 +382,12 @@ export default function App() {
               <h2 className="text-center text-xl font-bold text-slate-800">Confirm Information</h2>
               <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
                 <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
-                <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</span></p>
-                {/* KASADO: Ipinapakita ang tinype sa confirmation box para ma-verify ng user */}
+                <p className="text-slate-600"><strong>Priority:</strong> <span className={`font-bold ${formData.urgency === 'Urgent' ? 'text-rose-600' : 'text-slate-900'}`}>{formData.urgency}</span></p>
+                {/* KASADO: Display ng Date sa Confirmation view para mamonitor ng teacher */}
+                {formData.urgency === "Urgent" && formData.dateNeeded && (
+                  <p className="text-slate-600"><strong>Date Needed:</strong> <span className="text-rose-600 font-bold">{new Date(formData.dateNeeded).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></p>
+                )}
+                <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && formData.subPurpose !== "Others" ? `(${formData.subPurpose})` : ''}</span></p>
                 {formData.otherSpecify && <p className="text-slate-600"><strong>Details:</strong> <span className="text-blue-600 font-medium">{formData.otherSpecify}</span></p>}
                 <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
               </div>
@@ -451,27 +470,35 @@ export default function App() {
                         <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1.5 text-sm flex flex-col gap-0.5">
-               {/* 🛠️ PALITAN MO ITONG SPAN SA LOOB NG TABLE BODY: */}
-<div className="flex items-center gap-1.5">
-  <span className="text-rose-500">📌</span> 
-  <span>
-    {tx.purpose} {tx.subPurpose && tx.subPurpose !== "Others" ? `(${tx.subPurpose})` : ''}
-  </span>
-</div>
+                            
+                            {/* 🛠️ KASADO: Malinis na visual output para sa admin display */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-rose-500">📌</span> 
+                              <span className="font-medium text-slate-900">
+                                {tx.purpose} {tx.subPurpose && tx.subPurpose !== "Others" ? `(${tx.subPurpose})` : ''}
+                              </span>
 
-{/* KASADO: Ipinapakita ang text description ng Inquiry o Others box nang direkta sa Screen gamit ang Tailwind styles mo */}
-{tx.otherSpecify && (
-  <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
-    ↳ Detalye: {tx.otherSpecify}
-  </span>
-)}
+                              {/* 🚨 PULANG PULANG URGENT INDICATOR WITH DEADLINE DATE */}
+                              {tx.urgency === "Urgent" && (
+                                <span className="ml-1 px-2 py-0.5 text-[11px] font-bold bg-rose-50 text-rose-600 rounded-md border border-rose-200 animate-pulse">
+                                  ⚠️ URGENT {tx.dateNeeded ? `[Need: ${new Date(tx.dateNeeded).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}]` : '[ASAP]'}
+                                </span>
+                              )}
+                            </div>
 
-{/* 🌟 BAGONG DAGDAG: Lalabas ang asul na text na may gamit kapag Request Supply / Equipment ang pinili */}
-{tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
-  <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
-    ↳ Kagamitan: {tx.equipmentName}
-  </span>
-)}
+                            {/* KASADO: Custom Details */}
+                            {tx.otherSpecify && (
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Detalye: {tx.otherSpecify}
+                              </span>
+                            )}
+
+                            {/* SUPPLY / EQUIPMENT SECTION */}
+                            {tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
+                              <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
+                                ↳ Kagamitan: {tx.equipmentName}
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                             <span className="font-medium text-slate-400">Assisted by:</span> 
@@ -500,6 +527,7 @@ export default function App() {
             </div>
           )}
 
+          {/* STAFF MANAGEMENT MODAL */}
           {showStaffModal && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
               <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl border border-slate-100">
@@ -531,6 +559,7 @@ export default function App() {
             </div>
           )}
 
+          {/* PIN MANAGEMENT MODAL */}
           {showPinModal && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
               <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl border border-slate-100">
