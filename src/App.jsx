@@ -183,7 +183,6 @@ export default function App() {
       tx.lastName, 
       tx.urgency, 
       tx.purpose, 
-      // 🔥 KONDISYON: Kung Request Supply, ibigay ang kagamitan. Kung hindi, ibigay ang otherSpecify.
       tx.purpose === "Request Supply / Equipment" 
         ? (tx.equipmentName || 'N/A') 
         : (tx.otherSpecify || 'N/A'), 
@@ -191,11 +190,6 @@ export default function App() {
       tx.status
     ]);
     const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  };
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
