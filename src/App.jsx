@@ -452,8 +452,12 @@ export default function App() {
                         <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1.5 text-sm flex flex-col gap-0.5">
-                          <div className="flex items-center gap-1.5">
-  <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
+               {/* 🛠️ PALITAN MO ITONG SPAN SA LOOB NG TABLE BODY: */}
+<div className="flex items-center gap-1.5">
+  <span className="text-rose-500">📌</span> 
+  <span>
+    {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose === "Others" ? (tx.otherSpecify || "Others") : tx.subPurpose})` : ''}
+  </span>
 </div>
 
 {/* KASADO: Ipinapakita ang text description ng Inquiry o Others box nang direkta sa Screen gamit ang Tailwind styles mo */}
