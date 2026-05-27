@@ -7,7 +7,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState(''); 
   const [formData, setFormData] = useState({
     firstName: '', middleName: '', lastName: '',
-    purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular',
+    purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgencyDetails: '', urgency: 'Regular',
     assistedBy: '', equipmentName: ''
   });
   const [step, setStep] = useState(1);
@@ -58,14 +58,13 @@ export default function App() {
   }, [view, sessionPin]);
 
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handlePurposeChange = (e) => setFormData({ ...formData, purpose: e.target.value, subPurpose: '', otherSpecify: '', dateNeeded: '', equipmentName: '' });
+  const handlePurposeChange = (e) => setFormData({ ...formData, purpose: e.target.value, subPurpose: '', otherSpecify: '', dateNeeded: '', urgencyDetails: '', equipmentName: '' });
   
   const resetForm = () => {
-    setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular', assistedBy: '', equipmentName: '' });
+    setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgencyDetails: '', urgency: 'Regular', assistedBy: '', equipmentName: '' });
     setGeneratedTracking(''); setStep(1);
   };
 
-  // KASADO: Nilagyan ng dynamic control para sa Date Needed at Document Filters bago pumasok sa MongoDB
   const saveToDatabase = async () => {
     try {
       const isOthersDocument = ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others";
@@ -74,7 +73,8 @@ export default function App() {
         ...formData,
         subPurpose: ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) ? formData.subPurpose : "",
         otherSpecify: (formData.purpose === "Others" || formData.purpose === "Inquiry" || isOthersDocument) ? formData.otherSpecify : "",
-        dateNeeded: formData.urgency === "Urgent" ? formData.dateNeeded : ""
+        dateNeeded: formData.urgency === "Urgent" ? formData.dateNeeded : "",
+        urgencyDetails: formData.urgency === "Urgent" ? formData.urgencyDetails : ""
       };
 
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
@@ -171,20 +171,20 @@ export default function App() {
 
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
-    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''}`.toLowerCase();
+    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''} ${tx.urgencyDetails || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
-  // KASADO: Idinagdag ang "Date Needed" na kolum para malinis at hiwalay sa Excel/CSV
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
-    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Date Needed", "Purpose", "Specific Details", "Assisted By", "Status"];
+    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Date Needed", "Urgency Reason", "Purpose", "Specific Details", "Assisted By", "Status"];
     const rows = filteredTransactions.map(tx => [
       tx.trackingNumber, 
       tx.firstName, 
       tx.lastName, 
       tx.urgency, 
       tx.urgency === "Urgent" ? (tx.dateNeeded ? new Date(tx.dateNeeded).toLocaleDateString() : 'ASAP') : 'N/A',
+      tx.urgency === "Urgent" ? (tx.urgencyDetails || 'None') : 'N/A',
       tx.purpose, 
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
         ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
@@ -238,20 +238,18 @@ export default function App() {
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
 
-                {/* 📅 DYNAMIC DATE PICKER BOX (Lalabas lang pag urgent) */}
+                {/* 📅 DYNAMIC URGENT FIELDS */}
                 {formData.urgency === "Urgent" && (
-                  <div className="mt-2 flex flex-col gap-1 text-left animate-fadeIn">
-                    <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">
-                      📅 Date Needed / Kailan Kailangan?:
-                    </label>
-                    <input
-                      type="date"
-                      name="dateNeeded"
-                      value={formData.dateNeeded || ""}
-                      onChange={handleInputChange}
-                      required
-                      className="p-2.5 text-sm rounded-lg border border-rose-300 bg-white text-slate-700 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-                    />
+                  <div className="mt-2 flex flex-col gap-3 text-left bg-rose-50/50 p-3 rounded-xl border border-rose-100 animate-fadeIn">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">📅 Date Needed / Kailan Kailangan?:</label>
+                      <input type="date" name="dateNeeded" value={formData.dateNeeded || ""} onChange={handleInputChange} required className="p-2 text-sm rounded-lg border border-rose-300 bg-white text-slate-700 focus:outline-none focus:border-rose-500" />
+                    </div>
+                    {/* 🔥 NAPAKASALONG INPUT: Rason para sa Detalye ng Urgency */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">💬 Detalye / Dahilan ng Pagka-Urgent:</label>
+                      <input type="text" name="urgencyDetails" value={formData.urgencyDetails || ""} onChange={handleInputChange} required placeholder="Hal. Para sa DepEd deadline bukas / Pirma bago umalis" className="p-2 text-sm rounded-lg border border-rose-300 bg-white text-slate-700 focus:outline-none focus:border-rose-500" />
+                    </div>
                   </div>
                 )}
               </div>
@@ -268,9 +266,8 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
-              {/* 1. SUBMIT DOCUMENT */}
               {formData.purpose === "Submit Document(s) for Processing" && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
                   <option value="Travel Authority (Local)">Travel Authority (Local)</option>
                   <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
@@ -280,9 +277,8 @@ export default function App() {
                 </select>
               )}
 
-              {/* 2. REQUEST DOCUMENT */}
               {formData.purpose === 'Request Document(s)' && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
@@ -293,9 +289,8 @@ export default function App() {
                 </select>
               )}
 
-              {/* 3. RECEIVE DOCUMENT */}
               {formData.purpose === 'Receive Document(s)' && (
-                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document to Receive --</option>
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
@@ -308,72 +303,34 @@ export default function App() {
                 </select>
               )}
 
-              {/* 🔥 SMART FALLBACK: Text field para sa Document "Others" */}
               {["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others" && (
-                <input 
-                  type="text"
-                  name="otherSpecify"
-                  placeholder="Anong dokumento ito? I-type dito..."
-                  value={formData.otherSpecify || ""}
-                  onChange={handleInputChange}
-                  required
-                  className="p-3 text-sm rounded-lg border border-blue-400 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-blue-400"
-                />
+                <input type="text" name="otherSpecify" placeholder="Anong dokumento ito? I-type dito..." value={formData.otherSpecify || ""} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-blue-400 bg-white focus:outline-none" />
               )}
 
-              {/* 4. MAIN INQUIRY / OTHERS FIELD */}
               {(formData.purpose === "Others" || formData.purpose === "Inquiry") && (
-                <input 
-                  type="text" 
-                  name="otherSpecify" 
-                  placeholder={formData.purpose === "Inquiry" ? "Ano ang iyong itatanong?" : "Please specify"} 
-                  value={formData.otherSpecify} 
-                  onChange={handleInputChange} 
-                  required 
-                  className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                />
+                <input type="text" name="otherSpecify" placeholder={formData.purpose === "Inquiry" ? "Ano ang iyong itatanong?" : "Please specify"} value={formData.otherSpecify} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:border-blue-500" />
               )}
 
-              {/* 5. REQUEST SUPPLY / EQUIPMENT */}
               {formData.purpose === "Request Supply / Equipment" && (
-                <div className="mt-4 mb-4 text-left">
-                  <label htmlFor="equipmentName" className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
-                    Anong supply / kagamitan ang kailangan? (Optional):
-                  </label>
-                  <input
-                    type="text"
-                    id="equipmentName"
-                    name="equipmentName"
-                    value={formData.equipmentName || ""}
-                    onChange={handleInputChange}
-                    placeholder="Please type Tool or Equipment name..."
-                    autoComplete="on"
-                    className="w-full p-3 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 box-border"
-                  />
+                <div className="mt-2 text-left">
+                  <label htmlFor="equipmentName" className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Anong supply / kagamitan ang kailangan? (Optional):</label>
+                  <input type="text" id="equipmentName" name="equipmentName" value={formData.equipmentName || ""} onChange={handleInputChange} placeholder="Please type Tool or Equipment name..." className="w-full p-3 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:border-blue-500 box-border" />
                 </div>
               )}
 
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
-                <input 
-                  type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} 
-                  onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required 
-                  className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-xs" 
-                />
-                
+                <input type="text" name="assistedBy" autoComplete="off" placeholder="I-type o piliin ang pangalan..." value={formData.assistedBy} onChange={handleInputChange} onFocus={() => setShowStaffDropdown(true)} onBlur={() => setTimeout(() => setShowStaffDropdown(false), 200)} required className="p-3 text-sm rounded-lg border border-slate-200 w-full focus:outline-none focus:border-blue-500 transition-all" />
                 {showStaffDropdown && filteredAssistants.length > 0 && (
                   <ul className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg max-h-[140px] overflow-y-auto z-50 shadow-lg mt-1 p-1 list-none">
                     {filteredAssistants.map((name, i) => (
-                      <li key={i} className="p-2.5 cursor-pointer text-sm text-slate-700 rounded-md text-left hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                        onMouseDown={() => { setFormData({ ...formData, assistedBy: name }); setShowStaffDropdown(false); }}>
-                        👤 {name}
-                      </li>
+                      <li key={i} className="p-2.5 cursor-pointer text-sm text-slate-700 rounded-md text-left hover:bg-slate-50 hover:text-blue-600" onMouseDown={() => { setFormData({ ...formData, assistedBy: name }); setShowStaffDropdown(false); }}>👤 {name}</li>
                     ))}
                   </ul>
                 )}
               </div>
 
-              <button type="submit" className="p-3 mt-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow-sm hover:bg-blue-700 transition duration-200 uppercase tracking-wide">NEXT STEP ➡️</button>
+              <button type="submit" className="p-3 mt-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition uppercase tracking-wide">NEXT STEP ➡️</button>
             </form>
           )}
 
@@ -383,9 +340,11 @@ export default function App() {
               <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
                 <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
                 <p className="text-slate-600"><strong>Priority:</strong> <span className={`font-bold ${formData.urgency === 'Urgent' ? 'text-rose-600' : 'text-slate-900'}`}>{formData.urgency}</span></p>
-                {/* KASADO: Display ng Date sa Confirmation view para mamonitor ng teacher */}
                 {formData.urgency === "Urgent" && formData.dateNeeded && (
                   <p className="text-slate-600"><strong>Date Needed:</strong> <span className="text-rose-600 font-bold">{new Date(formData.dateNeeded).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></p>
+                )}
+                {formData.urgency === "Urgent" && formData.urgencyDetails && (
+                  <p className="text-slate-600"><strong>Dahilan:</strong> <span className="text-rose-600 font-medium">{formData.urgencyDetails}</span></p>
                 )}
                 <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && formData.subPurpose !== "Others" ? `(${formData.subPurpose})` : ''}</span></p>
                 {formData.otherSpecify && <p className="text-slate-600"><strong>Details:</strong> <span className="text-blue-600 font-medium">{formData.otherSpecify}</span></p>}
@@ -405,7 +364,7 @@ export default function App() {
               <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl my-5 shadow-sm">
                 <h2 className="m-0 text-amber-800 font-mono tracking-widest text-2xl font-bold">{generatedTracking}</h2>
               </div>
-              <button onClick={resetForm} className="p-2.5 px-6 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition shadow-sm">New Transaction</button>
+              <button onClick={resetForm} className="p-2.5 px-6 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition">New Transaction</button>
             </div>
           )}
         </div>
@@ -415,8 +374,8 @@ export default function App() {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[360px] mx-auto text-center">
           <h2 className="text-xl font-bold text-slate-800 mb-4">Admin Login</h2>
           <form onSubmit={handleAdminLogin}>
-            <input type="password" placeholder="Enter PIN" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required className="p-3 w-full rounded-lg border border-slate-200 mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
-            <button type="submit" className="w-full p-2.5 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition shadow-sm">Unlock Dashboard</button>
+            <input type="password" placeholder="Enter PIN" value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} required className="p-3 w-full rounded-lg border border-slate-200 mb-4 text-center text-lg tracking-widest focus:outline-none focus:border-emerald-500" />
+            <button type="submit" className="w-full p-2.5 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition">Unlock Dashboard</button>
           </form>
         </div>
       )}
@@ -435,7 +394,7 @@ export default function App() {
 
           <div className="relative mb-5">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-sm">🔍</span>
-            <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 pl-9 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+            <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 pl-9 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 transition-all" />
           </div>
 
           <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-xl border border-slate-100">
@@ -471,14 +430,12 @@ export default function App() {
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1.5 text-sm flex flex-col gap-0.5">
                             
-                            {/* 🛠️ KASADO: Malinis na visual output para sa admin display */}
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-rose-500">📌</span> 
                               <span className="font-medium text-slate-900">
                                 {tx.purpose} {tx.subPurpose && tx.subPurpose !== "Others" ? `(${tx.subPurpose})` : ''}
                               </span>
 
-                              {/* 🚨 PULANG PULANG URGENT INDICATOR WITH DEADLINE DATE */}
                               {tx.urgency === "Urgent" && (
                                 <span className="ml-1 px-2 py-0.5 text-[11px] font-bold bg-rose-50 text-rose-600 rounded-md border border-rose-200 animate-pulse">
                                   ⚠️ URGENT {tx.dateNeeded ? `[Need: ${new Date(tx.dateNeeded).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}]` : '[ASAP]'}
@@ -486,16 +443,23 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* KASADO: Custom Details */}
-                            {tx.otherSpecify && (
-                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
-                                ↳ Detalye: {tx.otherSpecify}
+                            {/* 🔥 KASADO: Dito lilitaw ang Detalye/Rason kung bakit Urgent */}
+                            {tx.urgency === "Urgent" && tx.urgencyDetails && (
+                              <span className="text-rose-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
+                                ↳ Detalye: {tx.urgencyDetails}
                               </span>
                             )}
 
-                            {/* SUPPLY / EQUIPMENT SECTION */}
+                            {/* Custom Standard Document Details ("Others") */}
+                            {tx.otherSpecify && (
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Dokumento: {tx.otherSpecify}
+                              </span>
+                            )}
+
+                            {/* Supply/Equipment details */}
                             {tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
-                              <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
+                              <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5">
                                 ↳ Kagamitan: {tx.equipmentName}
                               </span>
                             )}
@@ -512,7 +476,7 @@ export default function App() {
                           <select 
                             value={tx.status || 'Pending'} 
                             onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}
+                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}
                           >
                             <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
                             <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
@@ -529,15 +493,13 @@ export default function App() {
 
           {/* STAFF MANAGEMENT MODAL */}
           {showStaffModal && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
-              <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl border border-slate-100">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4">
+              <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl">
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">👥 Pamahalaan ang Staff</h3>
-                
                 <form onSubmit={handleAddStaff} className="flex gap-2 mb-4">
                   <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
-                  <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-sm transition">+</button>
+                  <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700">+</button>
                 </form>
-
                 <div className="border-t border-slate-100 pt-3">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Kasalukuyang Listahan:</label>
                   {assistants.length === 0 ? (
@@ -547,13 +509,12 @@ export default function App() {
                       {assistants.map((name, index) => (
                         <li key={index} className="flex justify-between items-center py-2.5 text-sm text-slate-700">
                           <span className="font-medium">👤 {name}</span>
-                          <button type="button" onClick={() => handleRemoveStaff(name)} className="bg-transparent text-slate-400 hover:text-rose-600 font-bold border-none cursor-pointer hover:scale-110 transition-transform">❌</button>
+                          <button type="button" onClick={() => handleRemoveStaff(name)} className="bg-transparent text-slate-400 hover:text-rose-600 font-bold border-none cursor-pointer">❌</button>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
-
                 <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 p-2 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Isara</button>
               </div>
             </div>
@@ -561,16 +522,16 @@ export default function App() {
 
           {/* PIN MANAGEMENT MODAL */}
           {showPinModal && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
-              <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl border border-slate-100">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4">
+              <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl">
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">⚙️ Change Admin PIN</h3>
                 <form onSubmit={handleChangePinSubmit} className="flex flex-col gap-3">
-                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
-                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
-                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm" />
+                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm" />
+                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm" />
                   <div className="flex gap-2 mt-2">
-                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">Cancel</button>
-                    <button type="submit" className="flex-1 p-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm">Save</button>
+                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200">Cancel</button>
+                    <button type="submit" className="flex-1 p-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700">Save</button>
                   </div>
                 </form>
               </div>
