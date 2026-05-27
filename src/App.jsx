@@ -188,7 +188,7 @@ export default function App() {
       tx.purpose, 
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
         ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
-        (tx.otherSpecify || 'N/A',
+        (tx.otherSpecify || 'N/A'),
       tx.assistedBy || 'None', 
       tx.status
     ]);
@@ -430,7 +430,6 @@ export default function App() {
                             
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-rose-500">📌</span> 
-                              {/* Clean Main Purpose Output (Walang side details!) */}
                               <span className="font-medium text-slate-900">{tx.purpose}</span>
 
                               {tx.urgency === "Urgent" && (
@@ -440,21 +439,21 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* Urgent Reason */}
+                            {/* Urgent Reason sa ilalim gamit ang Detalye label */}
                             {tx.urgency === "Urgent" && tx.urgencyDetails && (
                               <span className="text-rose-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
                                 ↳ Detalye: {tx.urgencyDetails}
                               </span>
                             )}
 
-                            {/* Standard Sub-Purpose (Dito na lilitaw as asul na Detalye gaya ng COE/Travel Authority) */}
+                            {/* Sub-Purpose (Gaya ng COE, Travel Authority na asul na Detalye) */}
                             {tx.subPurpose && tx.subPurpose !== "Others" && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.subPurpose}
                               </span>
                             )}
 
-                            {/* Custom/Others Input Text */}
+                            {/* Custom Input kung pinili ay Others/Inquiry */}
                             {tx.otherSpecify && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.otherSpecify}
