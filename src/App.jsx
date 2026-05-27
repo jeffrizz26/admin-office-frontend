@@ -65,13 +65,17 @@ export default function App() {
     setGeneratedTracking(''); setStep(1);
   };
 
-  // KASADO: Masusing Payload Filter Bago Ipasok sa Database Para Walang Data na Mawala
+ // KASADO: Masusing Payload Filter Bago Ipasok sa Database Para Walang Data na Mawala
   const saveToDatabase = async () => {
     try {
+      // 🌟 DAGDAG NA LOGIC: Chine-tsek kung nag-"Others" sa mga dokumento
+      const isOthersDocument = ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others";
+
       const payload = {
         ...formData,
         subPurpose: ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) ? formData.subPurpose : "",
-        otherSpecify: (formData.purpose === "Others" || formData.purpose === "Inquiry") ? formData.otherSpecify : ""
+        // 🌟 UPDATE: Pinapayagan na si otherSpecify kapag 'isOthersDocument' ay TRUE
+        otherSpecify: (formData.purpose === "Others" || formData.purpose === "Inquiry" || isOthersDocument) ? formData.otherSpecify : ""
       };
 
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
