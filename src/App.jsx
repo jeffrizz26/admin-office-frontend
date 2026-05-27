@@ -189,7 +189,7 @@ export default function App() {
       tx.purpose, 
       // 🔥 3-WAY FALLBACK: Sinasalo ang Kagamitan, Dokumento, o Inquiry/Others
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
-      ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose || 'N/A') :
+      ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
       (tx.otherSpecify || 'N/A'),
       
       tx.assistedBy || 'None', 
