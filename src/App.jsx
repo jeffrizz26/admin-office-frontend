@@ -65,12 +65,19 @@ export default function App() {
     setGeneratedTracking(''); setStep(1);
   };
 
+  // KASADO: Masusing Payload Filter Bago Ipasok sa Database Para Walang Data na Mawala
   const saveToDatabase = async () => {
     try {
+      const payload = {
+        ...formData,
+        subPurpose: ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) ? formData.subPurpose : "",
+        otherSpecify: (formData.purpose === "Others" || formData.purpose === "Inquiry") ? formData.otherSpecify : ""
+      };
+
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       const result = await response.json();
       if (result.success) {
@@ -159,16 +166,27 @@ export default function App() {
     } catch (error) { alert("❌ Bigong ma-update ang PIN."); }
   };
 
+  // KASADO: Idinagdag si tx.otherSpecify sa Search Filter Para Nahahanap Din ang Detalye ng Inquiry
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
-    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''}`.toLowerCase();
+    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
+  // KASADO: Maayos na Kolum ng "Specific Details" Para Siguradong Pumasok sa Excel/CSV
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
-    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Assisted By", "Status"];
-    const rows = filteredTransactions.map(tx => [tx.trackingNumber, tx.firstName, tx.lastName, tx.urgency, tx.purpose, tx.assistedBy || 'None', tx.status]);
+    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Purpose", "Specific Details", "Assisted By", "Status"];
+    const rows = filteredTransactions.map(tx => [
+      tx.trackingNumber, 
+      tx.firstName, 
+      tx.lastName, 
+      tx.urgency, 
+      tx.purpose, 
+      tx.otherSpecify || 'N/A', // Heto para sa nilalaman ng Inquiry o Others box!
+      tx.assistedBy || 'None', 
+      tx.status
+    ]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
@@ -216,7 +234,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* MODIFIED: Added bg-[length:1.25rem] to control size */}
               <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                 <option value="">-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
@@ -229,7 +246,6 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
-              {/* MODIFIED: Added bg-[length:1.25rem] */}
               {formData.purpose === "Submit Document(s) for Processing" && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
@@ -240,7 +256,6 @@ export default function App() {
                 </select>
               )}
 
-              {/* MODIFIED: Added bg-[length:1.25rem] */}
               {formData.purpose === 'Request Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="">-- Choose Document --</option>
@@ -252,17 +267,18 @@ export default function App() {
                 </select>
               )}
 
-             {(formData.purpose === "Others" || formData.purpose === "Inquiry") && (
-              <input 
+              {(formData.purpose === "Others" || formData.purpose === "Inquiry") && (
+                <input 
                   type="text" 
                   name="otherSpecify" 
                   placeholder={formData.purpose === "Inquiry" ? "Ano ang iyong itatanong?" : "Please specify"} 
                   value={formData.otherSpecify} 
                   onChange={handleInputChange} 
-                 required 
-                  className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs" 
-  />
-)}
+                  required 
+                  className="p-3 text-sm rounded-lg border border-slate-200 shadow-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                />
+              )}
+
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
                 <input 
@@ -293,6 +309,8 @@ export default function App() {
               <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
                 <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
                 <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && `(${formData.subPurpose})`}</span></p>
+                {/* KASADO: Ipinapakita ang tinype sa confirmation box para ma-verify ng user */}
+                {formData.otherSpecify && <p className="text-slate-600"><strong>Details:</strong> <span className="text-blue-600 font-medium">{formData.otherSpecify}</span></p>}
                 <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
               </div>
               <div className="flex gap-3 mt-1">
@@ -373,8 +391,16 @@ export default function App() {
                         </td>
                         <td className="px-6 py-4 align-middle">
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
-                          <div className="text-slate-600 mt-1.5 text-sm flex items-center gap-1.5">
-                            <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
+                          <div className="text-slate-600 mt-1.5 text-sm flex flex-col gap-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-rose-500">📌</span> <span>{tx.purpose} {tx.subPurpose ? `(${tx.subPurpose})` : ''}</span>
+                            </div>
+                            {/* KASADO: Ipinapakita ang text description ng Inquiry o Others box nang direkta sa Screen gamit ang Tailwind styles mo */}
+                            {tx.otherSpecify && (
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Detalye: {tx.otherSpecify}
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                             <span className="font-medium text-slate-400">Assisted by:</span> 
@@ -385,7 +411,6 @@ export default function App() {
                           {orasFormat}
                         </td>
                         <td className="px-6 py-4 align-middle text-center">
-                          {/* MODIFIED: Added bg-[length:1.25rem] here as well */}
                           <select 
                             value={tx.status || 'Pending'} 
                             onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
