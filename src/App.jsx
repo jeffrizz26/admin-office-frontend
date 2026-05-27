@@ -455,7 +455,7 @@ export default function App() {
 <div className="flex items-center gap-1.5">
   <span className="text-rose-500">📌</span> 
   <span>
-    {tx.purpose} {tx.subPurpose ? `(${tx.subPurpose === "Others" ? (tx.otherSpecify || "Others") : tx.subPurpose})` : ''}
+    {tx.purpose} {tx.subPurpose && tx.subPurpose !== "Others" ? `(${tx.subPurpose})` : ''}
   </span>
 </div>
 
