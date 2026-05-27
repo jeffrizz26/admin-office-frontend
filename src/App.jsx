@@ -238,7 +238,7 @@ export default function App() {
                 </div>
               </div>
 
-              <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
+        <select name="purpose" value={formData.purpose} onChange={handlePurposeChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                 <option value="" disabled hidden>-- Select Purpose --</option>
                 <option value="Inquiry">Inquiry</option>
                 <option value="Sign DTR/Summary of Absences">Sign DTR/Summary of Absences</option>
@@ -250,6 +250,7 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
+              {/* 1. SUBMIT DOCUMENT */}
               {formData.purpose === "Submit Document(s) for Processing" && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
@@ -257,9 +258,11 @@ export default function App() {
                   <option value="Travel Authority (Abroad)">Travel Authority (Abroad)</option>
                   <option value="Permit to Teach">Permit to Teach</option>
                   <option value="Permit to Study">Permit to Study</option>
+                  <option value="Others">Others (Please specify...)</option>
                 </select>
               )}
 
+              {/* 2. REQUEST DOCUMENT */}
               {formData.purpose === 'Request Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
@@ -268,9 +271,39 @@ export default function App() {
                   <option value="ITR">ITR</option>
                   <option value="SERVICE RECORD">SERVICE RECORD</option>
                   <option value="CERTIFICATE OF EMPLOYMENT (COE)">CERTIFICATE OF EMPLOYMENT (COE)</option>
+                  <option value="Others">Others (Please specify...)</option>
                 </select>
               )}
 
+              {/* 🌟 3. RECEIVE DOCUMENT (KASADO NA!) */}
+              {formData.purpose === 'Receive Document(s)' && (
+                <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
+                  <option value="" disabled hidden>-- Choose Document to Receive --</option>
+                  <option value="IPCRF">IPCRF</option>
+                  <option value="SALN">SALN</option>
+                  <option value="ITR">ITR</option>
+                  <option value="SERVICE RECORD">SERVICE RECORD</option>
+                  <option value="CERTIFICATE OF EMPLOYMENT (COE)">CERTIFICATE OF EMPLOYMENT (COE)</option>
+                  <option value="Travel Authority">Travel Authority</option>
+                  <option value="Permit to Teach / Study">Permit to Teach / Study</option>
+                  <option value="Others">Others (Please specify...)</option>
+                </select>
+              )}
+
+              {/* 🔥 SMART FALLBACK: Lalabas lang itong text field kapag may pumili ng "Others" sa kahit anong Dokumento sa itaas */}
+              {["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others" && (
+                <input 
+                  type="text"
+                  name="otherSpecify"
+                  placeholder="Anong dokumento ito? I-type dito..."
+                  value={formData.otherSpecify || ""}
+                  onChange={handleInputChange}
+                  required
+                  className="p-3 text-sm rounded-lg border border-blue-400 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-blue-400"
+                />
+              )}
+
+              {/* 4. MAIN INQUIRY / OTHERS FIELD */}
               {(formData.purpose === "Others" || formData.purpose === "Inquiry") && (
                 <input 
                   type="text" 
@@ -283,27 +316,24 @@ export default function App() {
                 />
               )}
 
-            
-            {formData.purpose === "Request Supply / Equipment" && (
-          <div className="mt-4 mb-4 text-left">
-        <label 
-              htmlFor="equipmentName" 
-          className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide"
-    >
-      Anong supply / kagamitan ang kailangan? (Optional):
-    </label>
-    <input
-      type="text"
-      id="equipmentName"
-      name="equipmentName"
-      value={formData.equipmentName || ""}
-      onChange={handleInputChange}
-      placeholder="Please type Tool or Equipment name..."
-      autoComplete="on"
-      className="w-full p-3 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 box-border"
-    />
-  </div>
-)}
+              {/* 5. REQUEST SUPPLY / EQUIPMENT */}
+              {formData.purpose === "Request Supply / Equipment" && (
+                <div className="mt-4 mb-4 text-left">
+                  <label htmlFor="equipmentName" className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
+                    Anong supply / kagamitan ang kailangan? (Optional):
+                  </label>
+                  <input
+                    type="text"
+                    id="equipmentName"
+                    name="equipmentName"
+                    value={formData.equipmentName || ""}
+                    onChange={handleInputChange}
+                    placeholder="Please type Tool or Equipment name..."
+                    autoComplete="on"
+                    className="w-full p-3 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 box-border"
+                  />
+                </div>
+              )}
 
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-semibold text-xs uppercase tracking-wider text-slate-500">Sino ang nag-assist sa iyo? (Staff Name):</label>
