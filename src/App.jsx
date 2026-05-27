@@ -184,7 +184,7 @@ export default function App() {
       tx.lastName, 
       tx.urgency, 
       tx.urgency === "Urgent" ? (tx.dateNeeded ? new Date(tx.dateNeeded).toLocaleDateString() : 'ASAP') : 'N/A',
-      tx.urgency === "Urgent" ? (tx.urgencyDetails || 'None') : 'N/A',
+      tx.urgency === "Urgent" ? (tx.urgencyDetails || 'None') : 'N/A', // TAMANG FIXED FIELD PARA SA URGENT REASON
       tx.purpose, 
       tx.purpose === "Request Supply / Equipment" ? (tx.equipmentName || 'N/A') :
         ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
@@ -439,28 +439,24 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* Urgent Reason sa ilalim gamit ang Detalye label */}
                             {tx.urgency === "Urgent" && tx.urgencyDetails && (
                               <span className="text-rose-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
                                 ↳ Detalye: {tx.urgencyDetails}
                               </span>
                             )}
 
-                            {/* Sub-Purpose (Gaya ng COE, Travel Authority na asul na Detalye) */}
                             {tx.subPurpose && tx.subPurpose !== "Others" && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.subPurpose}
                               </span>
                             )}
 
-                            {/* Custom Input kung pinili ay Others/Inquiry */}
                             {tx.otherSpecify && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.otherSpecify}
                               </span>
                             )}
 
-                            {/* Supply/Equipment Name */}
                             {tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.equipmentName}
