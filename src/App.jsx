@@ -65,7 +65,6 @@ export default function App() {
     setGeneratedTracking(''); setStep(1);
   };
 
-  // KASADO: Nilagyan ng dynamic control para sa Date Needed at Document Filters bago pumasok sa MongoDB
   const saveToDatabase = async () => {
     try {
       const isOthersDocument = ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others";
@@ -171,11 +170,10 @@ export default function App() {
 
   const filteredTransactions = transactions.filter(tx => {
     const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
-    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''}`.toLowerCase();
+    const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.subPurpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
-  // KASADO: Idinagdag ang "Date Needed" na kolum para malinis at hiwalay sa Excel/CSV
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
     const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Date Needed", "Purpose", "Specific Details", "Assisted By", "Status"];
@@ -238,7 +236,6 @@ export default function App() {
                   <label className="inline-flex items-center gap-2 text-sm text-rose-600 font-semibold cursor-pointer"><input type="radio" name="urgency" value="Urgent" checked={formData.urgency === 'Urgent'} onChange={handleInputChange} className="w-4 h-4 text-rose-600" /> ⚠️ Urgent</label>
                 </div>
 
-                {/* 📅 DYNAMIC DATE PICKER BOX (Lalabas lang pag urgent) */}
                 {formData.urgency === "Urgent" && (
                   <div className="mt-2 flex flex-col gap-1 text-left animate-fadeIn">
                     <label className="text-xs font-bold text-rose-600 uppercase tracking-wide">
@@ -268,7 +265,6 @@ export default function App() {
                 <option value="Others">Others</option>
               </select>
 
-              {/* 1. SUBMIT DOCUMENT */}
               {formData.purpose === "Submit Document(s) for Processing" && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
@@ -280,7 +276,6 @@ export default function App() {
                 </select>
               )}
 
-              {/* 2. REQUEST DOCUMENT */}
               {formData.purpose === 'Request Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
@@ -293,7 +288,6 @@ export default function App() {
                 </select>
               )}
 
-              {/* 3. RECEIVE DOCUMENT */}
               {formData.purpose === 'Receive Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document to Receive --</option>
@@ -308,7 +302,6 @@ export default function App() {
                 </select>
               )}
 
-              {/* 🔥 SMART FALLBACK: Text field para sa Document "Others" */}
               {["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(formData.purpose) && formData.subPurpose === "Others" && (
                 <input 
                   type="text"
@@ -321,7 +314,6 @@ export default function App() {
                 />
               )}
 
-              {/* 4. MAIN INQUIRY / OTHERS FIELD */}
               {(formData.purpose === "Others" || formData.purpose === "Inquiry") && (
                 <input 
                   type="text" 
@@ -334,7 +326,6 @@ export default function App() {
                 />
               )}
 
-              {/* 5. REQUEST SUPPLY / EQUIPMENT */}
               {formData.purpose === "Request Supply / Equipment" && (
                 <div className="mt-4 mb-4 text-left">
                   <label htmlFor="equipmentName" className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
@@ -383,7 +374,6 @@ export default function App() {
               <div className="bg-slate-50 p-4 rounded-xl flex flex-col gap-2 border border-slate-100 text-sm">
                 <p className="text-slate-600"><strong>Name:</strong> <span className="text-slate-900 font-medium">{formData.firstName} {formData.lastName}</span></p>
                 <p className="text-slate-600"><strong>Priority:</strong> <span className={`font-bold ${formData.urgency === 'Urgent' ? 'text-rose-600' : 'text-slate-900'}`}>{formData.urgency}</span></p>
-                {/* KASADO: Display ng Date sa Confirmation view para mamonitor ng teacher */}
                 {formData.urgency === "Urgent" && formData.dateNeeded && (
                   <p className="text-slate-600"><strong>Date Needed:</strong> <span className="text-rose-600 font-bold">{new Date(formData.dateNeeded).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></p>
                 )}
@@ -471,14 +461,10 @@ export default function App() {
                           <div className="font-bold text-slate-900 text-[15px]">{tx.lastName}, {tx.firstName}</div>
                           <div className="text-slate-600 mt-1.5 text-sm flex flex-col gap-0.5">
                             
-                            {/* 🛠️ KASADO: Malinis na visual output para sa admin display */}
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-rose-500">📌</span> 
-                              <span className="font-medium text-slate-900">
-                                {tx.purpose} {tx.subPurpose && tx.subPurpose !== "Others" ? `(${tx.subPurpose})` : ''}
-                              </span>
+                              <span className="text-blue-500">📌</span> 
+                              <span className="font-medium text-slate-900">{tx.purpose}</span>
 
-                              {/* 🚨 PULANG PULANG URGENT INDICATOR WITH DEADLINE DATE */}
                               {tx.urgency === "Urgent" && (
                                 <span className="ml-1 px-2 py-0.5 text-[11px] font-bold bg-rose-50 text-rose-600 rounded-md border border-rose-200 animate-pulse">
                                   ⚠️ URGENT {tx.dateNeeded ? `[Need: ${new Date(tx.dateNeeded).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}]` : '[ASAP]'}
@@ -486,17 +472,22 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* KASADO: Custom Details */}
+                            {/* TAMANG RENDERING NG SUB-PURPOSE SA DETALYE NG TRANSAKSYON */}
+                            {tx.subPurpose && tx.subPurpose !== "Others" && (
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Detalye: {tx.subPurpose}
+                              </span>
+                            )}
+
                             {tx.otherSpecify && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.otherSpecify}
                               </span>
                             )}
 
-                            {/* SUPPLY / EQUIPMENT SECTION */}
                             {tx.purpose === "Request Supply / Equipment" && tx.equipmentName && (
-                              <span className="text-blue-600 font-semibold text-xs pl-5 block mt-0.5 animate-fadeIn">
-                                ↳ Kagamitan: {tx.equipmentName}
+                              <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
+                                ↳ Detalye: {tx.equipmentName}
                               </span>
                             )}
                           </div>
@@ -512,7 +503,7 @@ export default function App() {
                           <select 
                             value={tx.status || 'Pending'} 
                             onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 transition-all duration-200 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}
+                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}
                           >
                             <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
                             <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
@@ -529,15 +520,13 @@ export default function App() {
 
           {/* STAFF MANAGEMENT MODAL */}
           {showStaffModal && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
-              <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl border border-slate-100">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4">
+              <div className="bg-white p-6 rounded-2xl w-full max-w-[360px] max-h-[80vh] overflow-y-auto shadow-xl">
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">👥 Pamahalaan ang Staff</h3>
-                
                 <form onSubmit={handleAddStaff} className="flex gap-2 mb-4">
                   <input type="text" placeholder="Pangalan ng bagong staff" required value={newStaffName} onChange={(e) => setNewStaffName(e.target.value)} className="flex-1 p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500" />
-                  <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-sm transition">+</button>
+                  <button type="submit" className="p-2 px-3.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700">+</button>
                 </form>
-
                 <div className="border-t border-slate-100 pt-3">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Kasalukuyang Listahan:</label>
                   {assistants.length === 0 ? (
@@ -547,13 +536,12 @@ export default function App() {
                       {assistants.map((name, index) => (
                         <li key={index} className="flex justify-between items-center py-2.5 text-sm text-slate-700">
                           <span className="font-medium">👤 {name}</span>
-                          <button type="button" onClick={() => handleRemoveStaff(name)} className="bg-transparent text-slate-400 hover:text-rose-600 font-bold border-none cursor-pointer hover:scale-110 transition-transform">❌</button>
+                          <button type="button" onClick={() => handleRemoveStaff(name)} className="bg-transparent text-slate-400 hover:text-rose-600 font-bold border-none cursor-pointer">❌</button>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
-
                 <button onClick={() => setShowStaffModal(false)} className="w-full mt-5 p-2 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition">Isara</button>
               </div>
             </div>
@@ -561,16 +549,16 @@ export default function App() {
 
           {/* PIN MANAGEMENT MODAL */}
           {showPinModal && (
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4 animate-fadeIn">
-              <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl border border-slate-100">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-[1000] p-4">
+              <div className="bg-white p-6 rounded-2xl w-full max-w-[320px] shadow-xl">
                 <h3 className="text-center text-lg font-bold text-slate-800 mb-4">⚙️ Change Admin PIN</h3>
                 <form onSubmit={handleChangePinSubmit} className="flex flex-col gap-3">
-                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
-                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
-                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none" />
+                  <input type="password" placeholder="Current PIN" required value={pinForm.currentPin} onChange={(e) => setPinForm({...pinForm, currentPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm" />
+                  <input type="password" placeholder="New PIN" required value={pinForm.newPin} onChange={(e) => setPinForm({...pinForm, newPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm" />
+                  <input type="password" placeholder="Confirm New PIN" required value={pinForm.confirmPin} onChange={(e) => setPinForm({...pinForm, confirmPin: e.target.value})} className="p-2.5 border border-slate-200 rounded-lg text-sm" />
                   <div className="flex gap-2 mt-2">
-                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">Cancel</button>
-                    <button type="submit" className="flex-1 p-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-sm">Save</button>
+                    <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 p-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-200">Cancel</button>
+                    <button type="submit" className="flex-1 p-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700">Save</button>
                   </div>
                 </form>
               </div>
