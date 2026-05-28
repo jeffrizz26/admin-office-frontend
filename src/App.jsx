@@ -279,12 +279,14 @@ export default function App() {
               {formData.purpose === 'Request Document(s)' && (
                 <select name="subPurpose" value={formData.subPurpose} onChange={handleInputChange} required className="p-3 text-sm rounded-lg border border-slate-200 bg-white shadow-xs appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')]">
                   <option value="" disabled hidden>-- Choose Document --</option>
+                  <option value="LOCATOR">LOCATOR</option>
                   <option value="IPCRF">IPCRF</option>
                   <option value="SALN">SALN</option>
                   <option value="ITR">ITR</option>
                   <option value="SERVICE RECORD">SERVICE RECORD</option>
                   <option value="CERTIFICATE OF EMPLOYMENT (COE)">CERTIFICATE OF EMPLOYMENT (COE)</option>
                   <option value="Others">Others (Please specify...)</option>
+                  
                 </select>
               )}
 
