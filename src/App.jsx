@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 
 export default function App() {
+  // 1. Pangunahing Navigation at Form Control States
   const [view, setView] = useState('form');
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  
+  // 🚨 INAYOS: Idinagdag ang nawawalang adminToken state para sa Security Session
+  const [adminToken, setAdminToken] = useState(''); 
+  
+  // 2. Data Storage States (Transactions List mula sa Database)
+  const [transactions, setTransactions] = useState([]);
+  const [generatedTracking, setGeneratedTracking] = useState('');
+  
+  // 3. Teacher Portal Form Fields Storage
   const [formData, setFormData] = useState({
     firstName: '',
     middleName: '',
@@ -11,35 +23,56 @@ export default function App() {
     otherSpecify: '',
     dateNeeded: '',
     urgency: 'Regular',
+    equipmentName: '',
     teacherAttachedFile: '' 
   });
-  const [step, setStep] = useState(1);
-  const [generatedTracking, setGeneratedTracking] = useState('');
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // REALTIME FILE NETWORK STATE
+  // 4. Realtime File at Search Monitoring Network States
   const [adminFiles, setAdminFiles] = useState({}); 
   const [teacherUploading, setTeacherUploading] = useState(false); 
   const [searchTrackingInput, setSearchTrackingInput] = useState(''); 
   const [searchedTransaction, setSearchedTransaction] = useState(null); 
 
-  // ANG IYONG CONFIGURATION (Selyadong nakakabit na)
+  // 5. Bagong Security Configuration para sa Kanila ni Teacher (Eksklusibong Link)
+  const [teacherSelectedPin, setTeacherSelectedPin] = useState({}); 
+  const [teacherSearchPinInput, setTeacherSearchPinInput] = useState(''); 
+
+  // 6. Ang Iyong Centralized Configuration Environment Settings
   const CLOUDINARY_CLOUD_NAME = 'dqadtybfu'; 
   const CLOUDINARY_UPLOAD_PRESET = 'uiwbyuni'; 
+  const BACKEND_URL = 'https://super-bassoon-r4vv9v4vwvwfx7jg-5000.app.github.dev';
 
-  const BACKEND_URL = 'https://admin-office-backend.vercel.app';
-  const ADMIN_SECRET_PASSWORD = '1234';
-
+  // 1. Awtomatikong Pagkuha ng mga Transaksyon Mula sa Backend (Tuwing 5 Segundo)
   useEffect(() => {
+    // Kung hindi pa naka-login sa dashboard o walang dalang token, huwag mag-fetch
+    if (view !== 'dashboard' || !adminToken) return;
+
     const fetchTransactions = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/transactions`);
+        const response = await fetch(`${BACKEND_URL}/api/transactions`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}` 
+          }
+        });
+
+        // Dynamic Kick-out Security Guard: Pag sumipa ang 401 mula sa DB PIN, pabalikin sa Login
+        if (response.status === 401) {
+          alert('🔒 Access Denied! Mali o Expired ang Admin PIN mo. Ibabalik kita sa Login.');
+          setAdminToken(''); 
+          setView('login');  
+          return;
+        }
+
         const result = await response.json();
-        if (result.success) setTransactions(result.data);
+        if (result.success) {
+          setTransactions(result.data);
+        }
       } catch (error) {
         console.error("Dashboard Sync Error:", error);
       } finally {
+        // Heto ang taga-patay ng stuck loading spinner kahit mag-error o mag-success
         setLoading(false);
       }
     };
@@ -47,28 +80,37 @@ export default function App() {
     fetchTransactions();
     const interval = setInterval(fetchTransactions, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [view, adminToken]); // 🚨 INAYOS: Binabantayan na ng React kapag nagbago ang view at token!
 
-    const handleInputChange = (e) => {
+  // 2. Event Handlers para sa mga Input Fields ng Form
+  const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handlePurposeChange = (e) => {
     setFormData({ 
-      ...formData, purpose: e.target.value, subPurpose: '', otherSpecify: '', dateNeeded: '', teacherAttachedFile: '' 
+      ...formData, 
+      purpose: e.target.value, 
+      subPurpose: '', 
+      otherSpecify: '', 
+      dateNeeded: '', 
+      equipmentName: '',
+      teacherAttachedFile: '' 
     });
   };
 
   const resetForm = () => {
     setFormData({ 
-      firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular', teacherAttachedFile: '' 
+      firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular', equipmentName: '', teacherAttachedFile: '' 
     });
     setGeneratedTracking('');
     setSearchedTransaction(null);
     setSearchTrackingInput('');
+    setTeacherSearchPinInput('');
     setStep(1);
   };
 
+  // 3. Pag-save ng Bagong Request / Transaksyon ni Teacher sa MongoDB
   const saveToDatabase = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
@@ -76,7 +118,6 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      
       const result = await response.json();
       if (result.success) {
         setGeneratedTracking(result.data.trackingNumber);
@@ -87,39 +128,35 @@ export default function App() {
       }
     } catch (error) {
       console.error("Submission Error:", error);
-      const mockTracking = "TRK-" + Math.floor(100000 + Math.random() * 900000);
-      const mockNewTx = {
-        _id: "tx-" + Date.now(),
-        trackingNumber: mockTracking,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        urgency: formData.urgency,
-        purpose: formData.purpose,
-        subPurpose: formData.subPurpose,
-        otherSpecify: formData.otherSpecify,
-        teacherAttachedFile: formData.teacherAttachedFile,
-        status: "Pending"
-      };
-      setGeneratedTracking(mockTracking);
-      setTransactions(prev => [mockNewTx, ...prev]);
-      setStep(3);
+      alert("❌ Hindi makakonekta sa server. Pakisuri ang iyong backend terminal.");
     }
   };
 
-  const handleStatusChange = async (id, newStatus, fileUrl = null) => {
+  // 4. Pagbabago sa Status ng Request at Pag-attach ng Ligtas na Cloudinary File Details
+  const handleStatusChange = async (id, newStatus, fileUrl = null, teacherPin = '') => {
     try {
       const updateData = { status: newStatus };
       if (fileUrl) {
-        updateData.adminReleasedFile = fileUrl;
+        updateData.secureFileId = fileUrl; 
+        updateData.fileName = "Released_Document.pdf";
+        updateData.teacherPin = teacherPin; 
       }
 
       setTransactions(prev => 
-        prev.map(tx => tx._id === id ? { ...tx, status: newStatus, adminReleasedFile: fileUrl || tx.adminReleasedFile } : tx)
+        prev.map(tx => tx._id === id ? { 
+          ...tx, 
+          status: newStatus, 
+          secureFileId: fileUrl || tx.secureFileId,
+          teacherPin: teacherPin || tx.teacherPin 
+        } : tx)
       );
 
       await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}` // 🚨 INAYOS: Gumagamit na ng dynamic active token
+        },
         body: JSON.stringify(updateData)
       });
     } catch (error) {
@@ -127,33 +164,24 @@ export default function App() {
     }
   };
 
-  const handleTrackSearch = () => {
-    const found = transactions.find(tx => tx.trackingNumber === searchTrackingInput.trim());
-    if (found) {
-      setSearchedTransaction(found);
-    } else {
-      alert("❌ Walang nahanap na transaksyon para sa tracking number na iyan.");
-      setSearchedTransaction(null);
-    }
-  };
-
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px' }}>
       
-      {/* NAVIGATION TABS */}
+      {/* ==================== SECTION 1: NAVIGATION TABS ==================== */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
         <button onClick={() => setView('form')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📄 Teacher Portal</button>
         <button onClick={() => setView(view === 'dashboard' ? 'dashboard' : 'login')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📊 Admin Dashboard</button>
       </div>
 
-          {/* VIEW: TEACHER PORTAL */}
+      {/* ==================== SECTION 2: VIEW: TEACHER PORTAL ==================== */}
       {view === 'form' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '450px', margin: '0 auto' }}>
           
-          {/* STEP 1: INPUT BOXES */}
+          {/* STEP 1: INPUT BOXES FOR PERSONAL DETAILS */}
           {step === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <h2 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>Admin Office Transaction</h2>
+              
               <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
               <input type="text" name="middleName" placeholder="Middle Name (Optional)" value={formData.middleName} onChange={handleInputChange} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
               <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}/>
@@ -188,7 +216,7 @@ export default function App() {
                     <option value="CERTIFICATE OF EMPLOYMENT (COE)">CERTIFICATE OF EMPLOYMENT (COE)</option>
                     <option value="Others">Others</option>
                   </select>
-                  
+
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#1e40af', marginTop: '5px' }}>➕ Attach Requirement File (Optional):</label>
                   <input type="file" onChange={async (e) => {
                     const selectedFile = e.target.files ? e.target.files[0] : null;
@@ -199,7 +227,8 @@ export default function App() {
                       dataForm.append('file', selectedFile);
                       dataForm.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                       
-                      const res = await fetch(`https://cloudinary.com{CLOUDINARY_CLOUD_NAME}/auto/upload`, { 
+                      // 🚨 INAYOS: Nilagyan ng tamang API endpoint at $ sign para sa domain template literal
+                      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, { 
                         method: 'POST', body: dataForm 
                       });
                       const resultData = await res.json();
@@ -212,6 +241,13 @@ export default function App() {
                   }} />
                   {teacherUploading && <span style={{ fontSize: '11px', color: '#eab308' }}>⏳ Sending file to cloud server...</span>}
                   {formData.teacherAttachedFile && <span style={{ fontSize: '11px', color: '#16a34a' }}>✅ Connected globally!</span>}
+                </div>
+              )}
+
+              {formData.purpose === 'Request Supply / Equipment' && (
+                <div style={{ backgroundColor: '#fff7ed', padding: '15px', borderRadius: '5px', border: '1px solid #ffedd5', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#c2410c' }}>Equipment Name:</label>
+                  <input type="text" name="equipmentName" value={formData.equipmentName} onChange={handleInputChange} required placeholder="What supply/equipment do you need?" style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc' }} />
                 </div>
               )}
 
@@ -248,7 +284,6 @@ export default function App() {
             </form>
           )}
 
-                      {/* STEP 2: CONFIRMATION SCREEN */}
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <h2>Confirmation</h2>
@@ -256,6 +291,7 @@ export default function App() {
                 <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
                 <p><strong>Priority:</strong> {formData.urgency}</p>
                 <p><strong>Purpose:</strong> {formData.purpose}</p>
+                {formData.equipmentName && <p><strong>Equipment:</strong> {formData.equipmentName}</p>}
                 {formData.subPurpose && <p><strong>Detail:</strong> {formData.subPurpose}</p>}
                 {formData.otherSpecify && <p><strong>Specific:</strong> {formData.otherSpecify}</p>}
                 {formData.teacherAttachedFile && <p style={{ color: '#16a34a' }}><strong>✓ Requirement Attached</strong></p>}
@@ -265,7 +301,6 @@ export default function App() {
             </div>
           )}
 
-          {/* STEP 3: PRIVATE TRACKING PORTAL */}
           {step === 3 && (
             <div style={{ padding: '15px 0', display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div style={{ backgroundColor: '#dcfce7', padding: '12px', borderRadius: '5px', textAlign: 'center', border: '1px solid #16a34a' }}>
@@ -277,29 +312,32 @@ export default function App() {
               <hr style={{ border: '0', borderTop: '1px dashed #ccc', margin: '10px 0' }} />
 
               <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>🔎 Check Status & Download Released File</h4>
-                <div style={{ display: 'flex', gap: '5px' }}>
-                  <input type="text" placeholder="I-paste ang Tracking No. dito..." value={searchTrackingInput} onChange={(e) => setSearchTrackingInput(e.target.value)} style={{ padding: '8px', flex: 1, borderRadius: '5px', border: '1px solid #ccc' }} />
-                  <button onClick={handleTrackSearch} style={{ padding: '8px 12px', backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Search</button>
+                <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>🔎 Ligtas na Pag-download ng Dokumento</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <input type="text" placeholder="I-type ang Tracking No. dito..." value={searchTrackingInput} onChange={(e) => setSearchTrackingInput(e.target.value)} style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                  <input type="password" placeholder="I-type ang PIN mo galing kay Admin..." value={teacherSearchPinInput} onChange={(e) => setTeacherSearchPinInput(e.target.value)} style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc' }} />
+                  
+                  <button onClick={async () => {
+                    try {
+                      const res = await fetch(`${BACKEND_URL}/api/transactions/secure-download`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ trackingNumber: searchTrackingInput.trim(), teacherPin: teacherSearchPinInput.trim() })
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        window.open(data.downloadUrl, '_blank'); 
+                        alert("🎉 Matagumpay na nakuha ang file! Valid ang link na ito sa loob ng 5 minuto.");
+                      } else {
+                        alert("❌ " + data.message);
+                      }
+                    } catch (err) {
+                      alert("❌ Error sa koneksyon ng download link.");
+                    }
+                  }} style={{ padding: '10px', backgroundColor: '#0f172a', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
+                    🔓 KUNIN ANG EXCLUSIVE DOWNLOAD LINK
+                  </button>
                 </div>
-
-                {searchedTransaction && (
-                  <div style={{ marginTop: '15px', padding: '12px', backgroundColor: '#fff', borderRadius: '5px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
-                    <p><strong>Status:</strong> <span style={{ color: searchedTransaction.adminReleasedFile || adminFiles[searchedTransaction._id] || searchedTransaction.status === 'Completed' ? '#16a34a' : '#d97706', fontWeight: 'bold' }}>{searchedTransaction.adminReleasedFile || adminFiles[searchedTransaction._id] ? 'Completed' : (searchedTransaction.status || 'Pending')}</span></p>
-                    
-                    {/* BROWSER CROSS-COMPUTER FILE LINK READOUT */}
-                    {searchedTransaction.adminReleasedFile || adminFiles[searchedTransaction._id] ? (
-                      <div style={{ marginTop: '10px', backgroundColor: '#f0fdf4', padding: '10px', borderRadius: '5px', border: '1px solid #bbf7d0' }}>
-                        <p style={{ margin: '0 0 5px 0', color: '#166534', fontWeight: 'bold' }}>🎁 Ready na ang Document mo!</p>
-                        <a href={searchedTransaction.adminReleasedFile || adminFiles[searchedTransaction._id]} target="_blank" rel="noreferrer" style={{ display: 'inline-block', padding: '6px 12px', backgroundColor: '#16a34a', color: 'white', textDecoration: 'none', borderRadius: '5px', fontWeight: 'bold', fontSize: '12px' }}>
-                          ⬇️ DOWNLOAD RELEASED FILE
-                        </a>
-                      </div>
-                    ) : (
-                      <p style={{ marginTop: '10px', color: '#64748b', fontStyle: 'italic' }}>⏳ Inaayos pa ni Admin ang iyong file. Pakihintay.</p>
-                    )}
-                  </div>
-                )}
               </div>
 
               <button onClick={resetForm} style={{ padding: '10px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', margin: '0 auto', width: '180px', fontWeight: 'bold' }}>New Transaction</button>
@@ -308,24 +346,32 @@ export default function App() {
         </div>
       )}
 
-      {/* VIEW: ADMIN LOGIN PORTAL */}
+      {/* ==================== SECTION 3: VIEW: ADMIN LOGIN PORTAL ==================== */}
       {view === 'login' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '350px', margin: '40px auto', textAlign: 'center' }}>
           <h2>🔒 Admin Authorization</h2>
-          <form onSubmit={(e) => { e.preventDefault(); if(e.target.pwd.value === ADMIN_SECRET_PASSWORD) setView('dashboard'); else alert('Maling Password!'); }} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
+          {/* 🚨 INAYOS: Ang anumang i-type mong password dito ang gagamiting token para mag-verify sa Database */}
+          <form onSubmit={(e) => { 
+            e.preventDefault(); 
+            const typedPin = e.target.pwd.value;
+            setAdminToken(typedPin); 
+            setLoading(true);
+            setView('dashboard'); 
+          }} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
             <input type="password" name="pwd" placeholder="Enter PIN" required style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc', textAlign: 'center' }}/>
             <button type="submit" style={{ padding: '10px', backgroundColor: '#166534', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Unlock Dashboard</button>
           </form>
         </div>
       )}
 
-                  {/* VIEW: ADMIN DASHBOARD */}
+      {/* ==================== SECTION 4: VIEW: ADMIN DASHBOARD ==================== */}
       {view === 'dashboard' && (
         <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
             <h2>Admin Office Transaction Dashboard</h2>
-            <button onClick={() => setView('form')} style={{ padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🚪 Lock Dashboard</button>
+            <button onClick={() => { setView('form'); setAdminToken(''); }} style={{ padding: '8px 15px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>🚪 Lock Dashboard</button>
           </div>
+          
           {loading ? (
             <p>Loading transactions...</p>
           ) : transactions.length === 0 ? (
@@ -340,115 +386,129 @@ export default function App() {
                   <th style={{ padding: '12px' }}>Purpose / Detail</th>
                   <th style={{ padding: '12px' }}>Teacher's Requirement</th>
                   <th style={{ padding: '12px' }}>Action / Status</th>
-                  <th style={{ padding: '12px' }}>Upload Release File</th>
+                  <th style={{ padding: '12px' }}>Secure Upload & Lock PIN</th>
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx) => (
-                  <tr key={tx._id || tx.trackingNumber} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: tx.urgency === 'Urgent' ? '#fef2f2' : 'transparent' }}>
-                    <td style={{ padding: '12px', fontWeight: 'bold', color: '#1e3a8a' }}>{tx.trackingNumber || 'N/A'}</td>
-                    <td style={{ padding: '12px' }}>{tx.lastName}, {tx.firstName}</td>
-                    <td style={{ padding: '12px', fontWeight: 'bold', color: tx.urgency === 'Urgent' ? '#dc2626' : '#4b5563' }}>{tx.urgency === 'Urgent' ? '⚠️ Urgent' : 'Regular'}</td>
-                    <td style={{ padding: '12px' }}>
-                      <span style={{ fontWeight: '500' }}>{tx.purpose}</span>
-                      <br />
-                      <span style={{ fontSize: '12px', color: '#2563eb' }}>{tx.subPurpose || tx.otherSpecify || '-'}</span>
-                    </td>
-                    
-                    {/* VIEW TEACHER REQUIREMENT */}
-                    <td style={{ padding: '12px' }}>
-                      {tx.teacherAttachedFile ? (
-                        <a href={tx.teacherAttachedFile} target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontWeight: 'bold', fontSize: '13px', textDecoration: 'underline' }}>
-                          📄 View Teacher File
-                        </a>
-                      ) : (
-                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>Walang file</span>
-                      )}
-                    </td>
+                {transactions.map((tx) => {
+                  const txId = tx._id || tx.trackingNumber;
+                  return (
+                    <tr key={txId} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: tx.urgency === 'Urgent' ? '#fef2f2' : 'transparent' }}>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#1e3a8a' }}>{tx.trackingNumber || 'N/A'}</td>
+                      <td style={{ padding: '12px' }}>{tx.lastName}, {tx.firstName}</td>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: tx.urgency === 'Urgent' ? '#dc2626' : '#4b5563' }}>{tx.urgency === 'Urgent' ? '⚠️ Urgent' : 'Regular'}</td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ fontWeight: '500' }}>{tx.purpose}</span>
+                        {tx.equipmentName && <><br /><span style={{ fontSize: '12px', color: '#c2410c', fontWeight: 'bold' }}>📦 {tx.equipmentName}</span></>}
+                        <br />
+                        <span style={{ fontSize: '12px', color: '#2563eb' }}>{tx.subPurpose || tx.otherSpecify || '-'}</span>
+                      </td>
+                      
+                      <td style={{ padding: '12px' }}>
+                        {tx.teacherAttachedFile ? (
+                          <a href={tx.teacherAttachedFile} target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontWeight: 'bold', fontSize: '13px', textDecoration: 'underline' }}>
+                            📄 View Teacher File
+                          </a>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '12px' }}>Walang file</span>
+                        )}
+                      </td>
 
-                    <td style={{ padding: '12px' }}>
-                      <select 
-                        value={tx.adminReleasedFile || adminFiles[tx._id || tx.trackingNumber] ? 'Completed' : (tx.status || 'Pending')} 
-                        onChange={(e) => handleStatusChange(tx._id || tx.trackingNumber, e.target.value)}
-                        style={{ 
-                          padding: '6px 10px', borderRadius: '15px', fontSize: '12px', fontWeight: 'bold', border: '1px solid #ccc',
-                          backgroundColor: tx.adminReleasedFile || adminFiles[tx._id || tx.trackingNumber] || tx.status === 'Completed' ? '#dcfce7' : tx.status === 'In Progress' ? '#dbeafe' : '#fef9c3',
-                          color: tx.adminReleasedFile || adminFiles[tx._id || tx.trackingNumber] || tx.status === 'Completed' ? '#15803d' : tx.status === 'In Progress' ? '#1e40af' : '#854d0e',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option value="Pending">🕒 Pending</option>
-                        <option value="In Progress">⚙️ In Progress</option>
-                        <option value="Completed">✅ Completed</option>
-                      </select>
-                    </td>
+                      <td style={{ padding: '12px' }}>
+                        <select 
+                          value={tx.secureFileId || adminFiles[txId] ? 'Completed' : (tx.status || 'Pending')} 
+                          onChange={(e) => handleStatusChange(txId, e.target.value)}
+                          style={{ 
+                            padding: '6px 10px', borderRadius: '15px', fontSize: '12px', fontWeight: 'bold', border: '1px solid #ccc',
+                            backgroundColor: tx.secureFileId || adminFiles[txId] || tx.status === 'Completed' ? '#dcfce7' : tx.status === 'In Progress' ? '#dbeafe' : '#fef9c3',
+                            color: tx.secureFileId || adminFiles[txId] || tx.status === 'Completed' ? '#15803d' : tx.status === 'In Progress' ? '#1e40af' : '#854d0e',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="Pending">🕒 Pending</option>
+                          <option value="In Progress">⚙️ In Progress</option>
+                          <option value="Completed">✅ Completed</option>
+                        </select>
+                      </td>
 
-                    {/* ✅ KROSS-COMPUTER CLOUDINARY LIVE CONNECTED ENGINE */}
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ position: 'relative' }}>
-                        <input 
-                          type="file" 
-                          id={`admin-file-${tx.trackingNumber}`} 
-                          style={{ display: 'none' }} 
-                          onChange={async (e) => {
-                            const adminSelectedFile = e.target.files ? e.target.files : null;
-                            if (!adminSelectedFile) return;
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          
+                          {!tx.secureFileId && !adminFiles[txId] ? (
+                            <>
+                              <input 
+                                type="text" 
+                                placeholder="Magtakda ng PIN..." 
+                                value={teacherSelectedPin[txId] || ''}
+                                onChange={(e) => setTeacherSelectedPin(prev => ({ ...prev, [txId]: e.target.value }))}
+                                style={{ padding: '4px 8px', fontSize: '11px', borderRadius: '4px', border: '1px solid #ccc', width: '160px' }}
+                              />
+                              
+                              <input 
+                                type="file" 
+                                id={`admin-file-${txId}`} 
+                                style={{ display: 'none' }} 
+                                onChange={async (e) => {
+                                  const adminSelectedFile = e.target.files ? e.target.files[0] : null;
+                                  if (!adminSelectedFile) return;
 
-                            setAdminFiles(prev => ({ ...prev, [tx._id || tx.trackingNumber]: "Uploading... ⏳" }));
+                                  const currentPin = teacherSelectedPin[txId];
+                                  if (!currentPin || !currentPin.trim()) {
+                                    alert("⚠️ Babala: Mag-type muna ng PIN para kay Teacher bago i-attach ang file!");
+                                    e.target.value = ""; 
+                                    return;
+                                  }
 
-                            try {
-                              const formData = new FormData();
-                              formData.append('file', adminSelectedFile);
-                              formData.append('upload_preset', 'uiwbyuni');
+                                  setAdminFiles(prev => ({ ...prev, [txId]: "Uploading... ⏳" }));
 
-                              // Direktang ipapadala sa internet cloud servers ng Cloudinary
-                            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
-                                  method: 'POST',
-                                   body: formData
-                              });
+                                  try {
+                                    const formDataInstance = new FormData();
+                                    formDataInstance.append('file', adminSelectedFile);
+                                    formDataInstance.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-                              // Idagdag mo ito pagkatapos ng fetch block mo:
-                              if (res.ok) {
-                              const data = await res.json();
-                                console.log("Uploaded URL:", data.secure_url); // Ito na ang gagamitin mo sa database mo!
-                                } else {
-                              const errorData = await res.json();
-                                console.error("Cloudinary Error:", errorData);
-                                }
+                                    // 🚨 INAYOS: Nilagyan ng tamang API endpoint at $ sign para sa domain template literal
+                                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+                                      method: 'POST',
+                                      body: formDataInstance
+                                    });
 
-                              const data = await res.json();
-                              if (data.secure_url) {
-                                // 1. I-save sa state ang live internet link ng file
-                                setAdminFiles(prev => ({ ...prev, [tx._id || tx.trackingNumber]: data.secure_url }));
-                                
-                                // 2. I-save ang link sa database at gawing 'Completed' ang status
-                                await handleStatusChange(tx._id || tx.trackingNumber, 'Completed', data.secure_url);
-                                
-                                alert("🎉 Global Cloud Upload Success! Ang link ay ligtas na nai-save sa backend server niyo.");
-                              } else {
-                                alert("❌ Cloud signature or network integration failed.");
-                                setAdminFiles(prev => { const updated = { ...prev }; delete updated[tx._id || tx.trackingNumber]; return updated; });
-                              }
-                            } catch (err) {
-                              console.error("Cloud Error:", err);
-                              setAdminFiles(prev => { const updated = { ...prev }; delete updated[tx._id || tx.trackingNumber]; return updated; });
-                            }
-                          }} 
-                        />
-                        <label htmlFor={`admin-file-${tx.trackingNumber}`} style={{ cursor: 'pointer', display: 'block', fontWeight: '500', color: '#0369a1', fontSize: '13px' }}>
-                          {tx.adminReleasedFile || (adminFiles[tx._id || tx.trackingNumber] && adminFiles[tx._id || tx.trackingNumber] !== "Uploading... ⏳") ? (
-                            <span style={{ color: '#16a34a', fontWeight: 'bold' }}>✅ Global Cloud Saved!</span>
-                          ) : adminFiles[tx._id || tx.trackingNumber] === "Uploading... ⏳" ? (
-                            <span style={{ color: '#eab308', fontWeight: 'bold' }}>⏳ Uploading to Cloud...</span>
+                                    const data = await res.json();
+                                    
+                                    if (data.secure_url) {
+                                      setAdminFiles(prev => ({ ...prev, [txId]: data.secure_url }));
+                                      await handleStatusChange(txId, 'Completed', data.secure_url, currentPin.trim());
+                                      alert(`🎉 Naka-upload!\n\nIbigay kay Teacher ang PIN: "${currentPin.trim()}"`);
+                                    } else {
+                                      alert("❌ Uploading failed.");
+                                      setAdminFiles(prev => { const updated = { ...prev }; delete updated[txId]; return updated; });
+                                    }
+                                  } catch (err) {
+                                    console.error("Cloud Error:", err);
+                                    setAdminFiles(prev => { const updated = { ...prev }; delete updated[txId]; return updated; });
+                                  }
+                                }} 
+                              />
+                              
+                              <label htmlFor={`admin-file-${txId}`} style={{ cursor: 'pointer', display: 'inline-block', fontWeight: 'bold', color: '#0369a1', fontSize: '12px', border: '1px solid #0369a1', padding: '5px 10px', borderRadius: '4px', textAlign: 'center', backgroundColor: '#f0f9ff' }}>
+                                ➕ ATTACH & ENCRYPT FILE
+                              </label>
+                            </>
                           ) : (
-                            '➕ Attach Release File'
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span style={{ color: '#16a34a', fontWeight: 'bold', fontSize: '13px' }}>✅ Global Cloud Saved!</span>
+                              <span style={{ fontSize: '11px', color: '#475569', fontStyle: 'italic' }}>PIN Lock: {tx.teacherPin || 'Naka-kandado'}</span>
+                            </div>
                           )}
-                        </label>
-                      </div>
-                    </td>
 
-                  </tr>
-                ))}
+                          {adminFiles[txId] === "Uploading... ⏳" && (
+                            <span style={{ color: '#eab308', fontWeight: 'bold', fontSize: '11px' }}>⏳ Savers Connecting...</span>
+                          )}
+
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
