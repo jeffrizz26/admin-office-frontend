@@ -6,7 +6,7 @@ export default function App() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   
-  // 🚨 INAYOS: Idinagdag ang nawawalang adminToken state para sa Security Session
+  // 🚨 Admin Token State para sa Security Session
   const [adminToken, setAdminToken] = useState(''); 
   
   // 2. Data Storage States (Transactions List mula sa Database)
@@ -41,10 +41,8 @@ export default function App() {
   const CLOUDINARY_CLOUD_NAME = 'dqadtybfu'; 
   const CLOUDINARY_UPLOAD_PRESET = 'uiwbyuni'; 
   const BACKEND_URL = 'https://super-bassoon-r4vv9v4vwvwfx7jg-5000.app.github.dev';
-
   // 1. Awtomatikong Pagkuha ng mga Transaksyon Mula sa Backend (Tuwing 5 Segundo)
   useEffect(() => {
-    // Kung hindi pa naka-login sa dashboard o walang dalang token, huwag mag-fetch
     if (view !== 'dashboard' || !adminToken) return;
 
     const fetchTransactions = async () => {
@@ -57,7 +55,6 @@ export default function App() {
           }
         });
 
-        // Dynamic Kick-out Security Guard: Pag sumipa ang 401 mula sa DB PIN, pabalikin sa Login
         if (response.status === 401) {
           alert('🔒 Access Denied! Mali o Expired ang Admin PIN mo. Ibabalik kita sa Login.');
           setAdminToken(''); 
@@ -72,7 +69,6 @@ export default function App() {
       } catch (error) {
         console.error("Dashboard Sync Error:", error);
       } finally {
-        // Heto ang taga-patay ng stuck loading spinner kahit mag-error o mag-success
         setLoading(false);
       }
     };
@@ -80,7 +76,7 @@ export default function App() {
     fetchTransactions();
     const interval = setInterval(fetchTransactions, 5000);
     return () => clearInterval(interval);
-  }, [view, adminToken]); // 🚨 INAYOS: Binabantayan na ng React kapag nagbago ang view at token!
+  }, [view, adminToken]);
 
   // 2. Event Handlers para sa mga Input Fields ng Form
   const handleInputChange = (e) => {
@@ -109,8 +105,7 @@ export default function App() {
     setTeacherSearchPinInput('');
     setStep(1);
   };
-
-  // 3. Pag-save ng Bagong Request / Transaksyon ni Teacher sa MongoDB
+    // 3. Pag-save ng Bagong Request / Transaksyon ni Teacher sa MongoDB
   const saveToDatabase = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/transactions`, {
@@ -133,6 +128,7 @@ export default function App() {
   };
 
   // 4. Pagbabago sa Status ng Request at Pag-attach ng Ligtas na Cloudinary File Details
+  // 4. Pagbabago sa Status ng Request at Pag-attach ng Ligtas na Cloudinary File Details
   const handleStatusChange = async (id, newStatus, fileUrl = null, teacherPin = '') => {
     try {
       const updateData = { status: newStatus };
@@ -142,20 +138,30 @@ export default function App() {
         updateData.teacherPin = teacherPin; 
       }
 
+      // 🚨 INAYOS: Mas pinalawak ang pag-check sa ID para siguradong mag-trigger ang UI update
       setTransactions(prev => 
-        prev.map(tx => tx._id === id ? { 
-          ...tx, 
-          status: newStatus, 
-          secureFileId: fileUrl || tx.secureFileId,
-          teacherPin: teacherPin || tx.teacherPin 
-        } : tx)
+        prev.map(tx => {
+          // I-check kung tumugma sa _id O sa trackingNumber ang pinasa na id
+          const isMatch = tx._id === id || tx.trackingNumber === id;
+          
+          if (isMatch) {
+            return {
+              ...tx,
+              status: newStatus,
+              // Kung may bagong file, gamitin ito. Kung wala, panatilihin ang luma.
+              secureFileId: fileUrl ? fileUrl : tx.secureFileId,
+              teacherPin: teacherPin ? teacherPin : tx.teacherPin
+            };
+          }
+          return tx;
+        })
       );
 
       await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}` // 🚨 INAYOS: Gumagamit na ng dynamic active token
+          'Authorization': `Bearer ${adminToken}` 
         },
         body: JSON.stringify(updateData)
       });
@@ -163,8 +169,7 @@ export default function App() {
       console.error("Status Update Error:", error);
     }
   };
-
-  return (
+    return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px' }}>
       
       {/* ==================== SECTION 1: NAVIGATION TABS ==================== */}
@@ -227,7 +232,6 @@ export default function App() {
                       dataForm.append('file', selectedFile);
                       dataForm.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                       
-                      // 🚨 INAYOS: Nilagyan ng tamang API endpoint at $ sign para sa domain template literal
                       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, { 
                         method: 'POST', body: dataForm 
                       });
@@ -282,9 +286,8 @@ export default function App() {
 
               <button type="submit" style={{ padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>SUBMIT TRANSACTION</button>
             </form>
-          )}
-
-          {step === 2 && (
+          )}  
+            {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <h2>Confirmation</h2>
               <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '5px', border: '1px solid #ddd', fontSize: '14px' }}>
@@ -350,7 +353,6 @@ export default function App() {
       {view === 'login' && (
         <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxWidth: '350px', margin: '40px auto', textAlign: 'center' }}>
           <h2>🔒 Admin Authorization</h2>
-          {/* 🚨 INAYOS: Ang anumang i-type mong password dito ang gagamiting token para mag-verify sa Database */}
           <form onSubmit={(e) => { 
             e.preventDefault(); 
             const typedPin = e.target.pwd.value;
@@ -363,8 +365,8 @@ export default function App() {
           </form>
         </div>
       )}
-
-      {/* ==================== SECTION 4: VIEW: ADMIN DASHBOARD ==================== */}
+      
+        {/* ==================== SECTION 4: VIEW: ADMIN DASHBOARD ==================== */}
       {view === 'dashboard' && (
         <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
@@ -390,8 +392,9 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx) => {
-                  const txId = tx._id || tx.trackingNumber;
+              
+              {transactions.map((tx, index) => {
+              const txId = tx._id || tx.trackingNumber || `tx-row-${index}`;
                   return (
                     <tr key={txId} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: tx.urgency === 'Urgent' ? '#fef2f2' : 'transparent' }}>
                       <td style={{ padding: '12px', fontWeight: 'bold', color: '#1e3a8a' }}>{tx.trackingNumber || 'N/A'}</td>
@@ -404,11 +407,25 @@ export default function App() {
                         <span style={{ fontSize: '12px', color: '#2563eb' }}>{tx.subPurpose || tx.otherSpecify || '-'}</span>
                       </td>
                       
+                      {/* 🚨 INAYOS: Binago para tugma sa MongoDB field names at nilagyan ng Button Interface */}
                       <td style={{ padding: '12px' }}>
-                        {tx.teacherAttachedFile ? (
-                          <a href={tx.teacherAttachedFile} target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontWeight: 'bold', fontSize: '13px', textDecoration: 'underline' }}>
-                            📄 View Teacher File
-                          </a>
+                        {tx.teacherAttachmentUrl && tx.teacherAttachmentUrl !== "" ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span style={{ fontSize: '11px', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }} title={tx.teacherAttachmentName}>
+                              📁 {tx.teacherAttachmentName || 'Requirement_File'}
+                            </span>
+                            <a 
+                              href={tx.teacherAttachmentUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              style={{ 
+                                display: 'inline-block', padding: '4px 8px', backgroundColor: '#2563eb', color: 'white', 
+                                borderRadius: '4px', textDecoration: 'none', fontSize: '11px', fontWeight: 'bold', textAlign: 'center' 
+                              }}
+                            >
+                              👁️ View / Download
+                            </a>
+                          </div>
                         ) : (
                           <span style={{ color: '#94a3b8', fontSize: '12px' }}>Walang file</span>
                         )}
@@ -433,7 +450,6 @@ export default function App() {
 
                       <td style={{ padding: '12px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                          
                           {!tx.secureFileId && !adminFiles[txId] ? (
                             <>
                               <input 
@@ -466,7 +482,6 @@ export default function App() {
                                     formDataInstance.append('file', adminSelectedFile);
                                     formDataInstance.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-                                    // 🚨 INAYOS: Nilagyan ng tamang API endpoint at $ sign para sa domain template literal
                                     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
                                       method: 'POST',
                                       body: formDataInstance
@@ -503,7 +518,6 @@ export default function App() {
                           {adminFiles[txId] === "Uploading... ⏳" && (
                             <span style={{ color: '#eab308', fontWeight: 'bold', fontSize: '11px' }}>⏳ Savers Connecting...</span>
                           )}
-
                         </div>
                       </td>
                     </tr>
