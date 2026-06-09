@@ -22,7 +22,7 @@ export default function App() {
   const [showStaffModal, setShowStaffModal] = useState(false); 
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
 
-  const BACKEND_URL = 'https://admin-office-backend.vercel.app'; 
+  const BACKEND_URL = 'https://super-bassoon-r4vv9v4vwvwfx7jg-5000.app.github.dev'; 
 
   useEffect(() => {
     const fetchAssistants = async () => {
@@ -105,7 +105,7 @@ export default function App() {
     } catch (err) { alert("❌ Error adding staff."); }
   };
 
-  const handleRemoveStaff = async (name) => {
+    const handleRemoveStaff = async (name) => {
     if (!window.confirm(`Sigurado ka bang tatanggalin si ${name} sa listahan?`)) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/assistants/remove`, {
@@ -118,7 +118,8 @@ export default function App() {
     } catch (err) { alert("❌ Error removing staff."); }
   };
 
-  const handleStatusChange = async (id, newStatus) => {
+  // HANDLER 1: Ginawang updateStatus para gumana pareho sa dropdown [Part 8]
+  const updateStatus = async (id, newStatus) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
         method: 'PUT',
@@ -130,6 +131,47 @@ export default function App() {
         setTransactions(prev => prev.map(tx => tx._id === id ? { ...tx, status: newStatus } : tx));
       }
     } catch (error) { alert('❌ Error updating status!'); }
+  };
+
+  // HANDLER 2: Pinahusay na Pagsasauli - Sabay ang MongoDB, CSV, at UI change nang walang reload
+    const handleEquipmentReturn = async (id, currentReturnStatus) => {
+    if (currentReturnStatus) return;
+
+    if (!window.confirm("Sigurado ka bang naibalik na ito? Ang status ay magiging 'Naibalik Na' at 'Done' sa dashboard.")) return;
+
+    try {
+      // 1. Tumawag sa backend gamit ang ID at tiyaking kasama ang Authorization Header!
+      const response = await fetch(`${BACKEND_URL}/api/transactions/${id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${sessionPin}` // 🔒 Napakahalaga nito para hindi ka i-block ng backend!
+        },
+        body: JSON.stringify({ 
+          equipmentReturned: true,
+          status: 'Done' 
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert("🎉 Tagumpay! Na-record sa MongoDB at na-append sa iyong CSV File.");
+        
+        // 2. Direktang update sa screen state para lumipat agad sa Archive tab nang kusa
+        setTransactions(prev => prev.map(tx => {
+          if (tx._id === id) {
+            return { ...tx, equipmentReturned: true, status: 'Done' };
+          }
+          return tx;
+        }));
+      } else {
+        alert('❌ Error mula sa server: ' + result.message);
+      }
+    } catch (error) { 
+      console.error("Return status update error:", error);
+      alert('❌ Error updating return status! May problema sa koneksyon.');
+    }
   };
 
   const handleAdminLogin = async (e) => {
@@ -169,14 +211,21 @@ export default function App() {
   };
 
   const filteredTransactions = transactions.filter(tx => {
-    const matchesTab = dashboardTab === 'active' ? tx.status !== 'Completed' : tx.status === 'Completed';
+    const matchesTab = dashboardTab === 'active' ? tx.status !== 'Done' : tx.status === 'Done';
     const searchString = `${tx.trackingNumber || ''} ${tx.firstName || ''} ${tx.lastName || ''} ${tx.purpose || ''} ${tx.subPurpose || ''} ${tx.assistedBy || ''} ${tx.otherSpecify || ''}`.toLowerCase();
     return matchesTab && searchString.includes(searchTerm.toLowerCase());
   });
 
-  const exportToCSV = () => {
+    const exportToCSV = () => {
     if (filteredTransactions.length === 0) return alert("⚠️ Walang data.");
-    const headers = ["Tracking Number", "First Name", "Last Name", "Priority", "Date Needed", "Purpose", "Specific Details", "Assisted By", "Status"];
+    
+    // INAYOS NA HEADERS: Idinagdag ang "Date & Time Returned" sa dulo
+    const headers = [
+      "Tracking Number", "First Name", "Last Name", "Priority", "Date Needed", 
+      "Purpose", "Specific Details", "Assisted By", "Action Status", 
+      "Equipment Return Status", "Date & Time Returned"
+    ];
+    
     const rows = filteredTransactions.map(tx => [
       tx.trackingNumber, 
       tx.firstName, 
@@ -188,13 +237,25 @@ export default function App() {
         ["Request Document(s)", "Submit Document(s) for Processing", "Receive Document(s)"].includes(tx.purpose) ? (tx.subPurpose === "Others" ? (tx.otherSpecify || 'Others') : (tx.subPurpose || 'N/A')) :
         (tx.otherSpecify || 'N/A'),
       tx.assistedBy || 'None', 
-      tx.status
+      tx.status || 'Pending', // Dynamic status (Pending, Progress, Done)
+      tx.purpose === "Request Supply / Equipment" ? (tx.equipmentReturned ? "Returned" : "Borrowed") : "N/A",
+      
+      // BAGONG COLUMN LOGIC: Isasama ang Oras at Petsa ng Pagsauli kung ito ay naibalik na
+      tx.purpose === "Request Supply / Equipment" && tx.equipmentReturned
+        ? new Date(tx.updatedAt).toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
+        : 'N/A'
     ]);
+    
+    // Pagsasalin ng array patungong encoded CSV format gamit ang tamang separators at double quotes protection
     const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(","), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
     const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `Office_Report.csv`);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    link.setAttribute("href", encodeURI(csvContent)); 
+    link.setAttribute("download", `Office_Report.csv`);
+    document.body.appendChild(link); 
+    link.click(); 
+    document.body.removeChild(link);
   };
+
 
   const filteredAssistants = assistants.filter(name => 
     name.toLowerCase().includes(formData.assistedBy.toLowerCase())
@@ -214,11 +275,13 @@ export default function App() {
   return (
     <div className="font-sans bg-slate-50 min-h-screen p-4 md:p-6 antialiased text-slate-800">
       
+      {/* NAVIGATION TABS */}
       <div className="flex justify-center gap-3 mb-6">
         <button onClick={() => setView('form')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'form' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📄 Form</button>
         <button onClick={() => setView(sessionPin ? 'dashboard' : 'login')} className={`flex-1 max-w-[130px] py-2.5 px-4 cursor-pointer rounded-lg border font-semibold text-sm transition-all duration-200 ${view === 'dashboard' || view === 'login' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>📊 Dashboard</button>
       </div>
 
+      {/* VIEW 1: TRANSACTION FORM */}
       {view === 'form' && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[460px] mx-auto">
           {step === 1 && (
@@ -286,7 +349,6 @@ export default function App() {
                   <option value="SERVICE RECORD">SERVICE RECORD</option>
                   <option value="CERTIFICATE OF EMPLOYMENT (COE)">CERTIFICATE OF EMPLOYMENT (COE)</option>
                   <option value="Others">Others (Please specify...)</option>
-                  
                 </select>
               )}
 
@@ -381,6 +443,7 @@ export default function App() {
                 )}
                 <p className="text-slate-600"><strong>Purpose:</strong> <span className="text-slate-900 font-medium">{formData.purpose} {formData.subPurpose && formData.subPurpose !== "Others" ? `(${formData.subPurpose})` : ''}</span></p>
                 {formData.otherSpecify && <p className="text-slate-600"><strong>Details:</strong> <span className="text-blue-600 font-medium">{formData.otherSpecify}</span></p>}
+                {formData.purpose === "Request Supply / Equipment" && formData.equipmentName && <p className="text-slate-600"><strong>Equipment:</strong> <span className="text-blue-600 font-medium">{formData.equipmentName}</span></p>}
                 <p className="text-slate-600"><strong>Assisted By:</strong> <span className="text-slate-900 font-medium">{formData.assistedBy}</span></p>
               </div>
               <div className="flex gap-3 mt-1">
@@ -403,6 +466,7 @@ export default function App() {
         </div>
       )}
 
+      {/* VIEW 2: LOGIN VIEW */}
       {view === 'login' && (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-[360px] mx-auto text-center">
           <h2 className="text-xl font-bold text-slate-800 mb-4">Admin Login</h2>
@@ -412,7 +476,8 @@ export default function App() {
           </form>
         </div>
       )}
-
+      
+      
       {view === 'dashboard' && (
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 max-w-[1060px] mx-auto">
           <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
@@ -430,10 +495,24 @@ export default function App() {
             <input type="text" placeholder="Mag-hanap gamit ang Pangalan, Tracking, o Staff..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-2.5 pl-9 box-border rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
           </div>
 
-          <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-xl border border-slate-100">
-            <button onClick={() => setDashboardTab('active')} className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'active' ? 'bg-white text-blue-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>Active ({transactions.filter(t => t.status !== 'Completed').length})</button>
-            <button onClick={() => setDashboardTab('archive')} className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'archive' ? 'bg-white text-slate-700 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>Archives ({transactions.filter(t => t.status === 'Completed').length})</button>
+                   <div className="flex gap-2 mb-6 bg-slate-50 p-1 rounded-xl border border-slate-100">
+            {/* ACTIVE TAB COUNTER BUTTON */}
+            <button 
+              onClick={() => setDashboardTab('active')} 
+              className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'active' ? 'bg-white text-blue-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Active ({transactions.filter(t => t.status !== 'Done').length})
+            </button>
+            
+            {/* ARCHIVES TAB COUNTER BUTTON */}
+            <button 
+              onClick={() => setDashboardTab('archive')} 
+              className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${dashboardTab === 'archive' ? 'bg-white text-slate-700 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Archives ({transactions.filter(t => t.status === 'Done').length})
+            </button>
           </div>
+
 
           {loading ? (
             <p className="text-center text-slate-500 font-medium py-6 text-sm animate-pulse">Loading dashboard records...</p>
@@ -474,7 +553,6 @@ export default function App() {
                               )}
                             </div>
 
-                            {/* TAMANG RENDERING NG SUB-PURPOSE SA DETALYE NG TRANSAKSYON */}
                             {tx.subPurpose && tx.subPurpose !== "Others" && (
                               <span className="text-blue-600 font-medium text-xs pl-5 block mt-0.5">
                                 ↳ Detalye: {tx.subPurpose}
@@ -492,6 +570,25 @@ export default function App() {
                                 ↳ Detalye: {tx.equipmentName}
                               </span>
                             )}
+
+                            {/* DYNAMIC RETURN EQUIPMENT BUTTON FOR ADMIN */}
+                            {tx.purpose === "Request Supply / Equipment" && (
+                              <div className="mt-2 flex items-center gap-2 pl-5">
+                                <span className="text-xs font-semibold text-slate-500">Return Status:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleEquipmentReturn(tx._id, tx.equipmentReturned)}
+                                  className={`px-2 py-0.5 rounded text-xs font-bold cursor-pointer transition-all border ${
+                                    tx.equipmentReturned
+                                      ? 'bg-emerald-100 text-emerald-800 border-emerald-200 shadow-xs'
+                                      : 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200 shadow-xs'
+                                  }`}
+                                >
+                                  {tx.equipmentReturned ? '🔄 Naibalik Na' : '⚠️ Mark as Returned'}
+                                </button>
+                              </div>
+                            )}
+
                           </div>
                           <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                             <span className="font-medium text-slate-400">Assisted by:</span> 
@@ -503,14 +600,14 @@ export default function App() {
                         </td>
                         <td className="px-6 py-4 align-middle text-center">
                           <select 
-                            value={tx.status || 'Pending'} 
-                            onChange={(e) => handleStatusChange(tx._id, e.target.value)} 
-                            className={`p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px] text-center shadow-sm focus:outline-none focus:ring-2 appearance-none bg-no-repeat bg-[right_11px_center] bg-[length:1.25rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] ${getStatusDropdownClass(tx.status)}`}
-                          >
-                            <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
-                            <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
-                            <option value="Completed" className="bg-white text-slate-800">✅ Done</option>
-                          </select>
+                              value={tx.status} 
+                              onChange={(e) => updateStatus(tx._id, e.target.value)}
+                              className="p-2 rounded-lg text-xs font-bold border cursor-pointer w-full min-w-[120px]"
+>
+                          <option value="Pending" className="bg-white text-slate-800">🕒 Pending</option>
+                         <option value="In Progress" className="bg-white text-slate-800">⚙️ Progress</option>
+                        <option value="Done" className="bg-white text-slate-800">✅ Done</option>
+                      </select>
                         </td>
                       </tr>
                     );

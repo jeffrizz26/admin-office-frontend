@@ -11,6 +11,8 @@ export default function App() {
   const [generatedTracking, setGeneratedTracking] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState('teacher'); // Pwedeng 'teacher' o 'admin' para sa testing ng dynamic system UI
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // BASE URL LAMANG PARA SA TAMANG ROUTING NG VERCEL
   const BACKEND_URL = 'https://admin-office-backend.vercel.app';
@@ -47,6 +49,7 @@ export default function App() {
   const resetForm = () => {
     setFormData({ firstName: '', middleName: '', lastName: '', purpose: '', subPurpose: '', otherSpecify: '', dateNeeded: '', urgency: 'Regular' });
     setGeneratedTracking('');
+    setSelectedFile(null);
     setStep(1);
   };
 
@@ -98,6 +101,12 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px' }}>
+      {/* Dynamic Tester Ribbon: Alisin ito kapag ide-deploy na sa live site */}
+      <div style={{ backgroundColor: '#1e293b', color: '#f8fafc', padding: '8px', borderRadius: '5px', maxWidth: '450px', margin: '0 auto 15px auto', fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>🔄 Role Tester: <strong>{userRole.toUpperCase()}</strong> View</span>
+        <button onClick={() => { setUserRole(userRole === 'teacher' ? 'admin' : 'teacher'); setSelectedFile(null); }} style={{ padding: '3px 8px', backgroundColor: '#3b82f6', border: 'none', borderRadius: '3px', color: 'white', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Switch Role</button>
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
         <button onClick={() => setView('form')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'form' ? '#2563eb' : '#fff', color: view === 'form' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📄 Transaction Form</button>
         <button onClick={() => setView(view === 'dashboard' ? 'dashboard' : 'login')} style={{ padding: '10px 20px', cursor: 'pointer', backgroundColor: view === 'dashboard' || view === 'login' ? '#16a34a' : '#fff', color: view === 'dashboard' || view === 'login' ? '#fff' : '#333', border: '1px solid #ccc', borderRadius: '5px', fontWeight: 'bold' }}>📊 Admin Dashboard</button>
@@ -174,6 +183,52 @@ export default function App() {
                 <input type="text" name="otherSpecify" value={formData.otherSpecify} onChange={handleInputChange} required placeholder="Specify detail here..." style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc' }}/>
               )}
 
+              {/* --- BAGONG ISINURAT: DYNAMIC FILE UPLOAD LOGIC --- */}
+              <div style={{ borderTop: '1px dashed #cbd5e1', marginTop: '10px', paddingTop: '15px', textAlign: 'left' }}>
+                {userRole === 'teacher' ? (
+                  // LAYER: TEACHER SUBMISSION
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                      Upload Supporting Documents (Optional)
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100px', border: '2px dashed #cbd5e1', borderRadius: '8px', backgroundColor: '#f8fafc', padding: '10px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                      <input 
+                        type="file" 
+                        id="teacher-file-input"
+                        style={{ display: 'none' }} 
+                        onChange={(e) => setSelectedFile(e.target.files[0])} 
+                      />
+                      <label htmlFor="teacher-file-input" style={{ width: '100%', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <span style={{ fontSize: '24px' }}>📁</span>
+                        <span style={{ fontSize: '13px', color: '#475569', fontWeight: selectedFile ? 'bold' : 'normal' }}>
+                          {selectedFile ? `Selected: ${selectedFile.name}` : "I-click dito para mag-upload ng requirements"}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  // LAYER: ADMIN COMPLETION
+                  <div style={{ backgroundColor: '#f0f9ff', padding: '15px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#0369a1', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Admin Action: Attach Requested Document
+                    </label>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#0284c7' }}>
+                      I-upload dito ang processed file para ma-download ni teacher sa kanyang panel.
+                    </p>
+                    <input 
+                      type="file" 
+                      onChange={(e) => setSelectedFile(e.target.files[0])}
+                      style={{ fontSize: '13px', color: '#475569', width: '100%' }}
+                    />
+                    {selectedFile && (
+                      <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#16a34a', fontWeight: 'bold' }}>
+                        ✓ Handa nang i-release: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <button type="submit" style={{ padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>SUBMIT TRANSACTION</button>
             </form>
           )}
@@ -187,6 +242,7 @@ export default function App() {
                 <p><strong>Purpose:</strong> {formData.purpose}</p>
                 {formData.subPurpose && <p><strong>Detail:</strong> {formData.subPurpose}</p>}
                 {formData.otherSpecify && <p><strong>Specific:</strong> {formData.otherSpecify}</p>}
+                {selectedFile && <p><strong>Attached File:</strong> 📄 {selectedFile.name}</p>}
               </div>
               <button onClick={saveToDatabase} style={{ padding: '12px', backgroundColor: '#166534', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>I confirm that the information I provided is correct.</button>
               <button onClick={() => setStep(1)} style={{ color: '#666', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none' }}>Back to Edit</button>
