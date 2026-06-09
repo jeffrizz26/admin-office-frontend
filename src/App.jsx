@@ -22,7 +22,7 @@ export default function App() {
   const [showStaffModal, setShowStaffModal] = useState(false); 
   const [pinForm, setPinForm] = useState({ currentPin: '', newPin: '', confirmPin: '' });
 
-  const BACKEND_URL = 'https://super-bassoon-r4vv9v4vwvwfx7jg-5000.app.github.dev'; 
+  const BACKEND_URL = 'https://https://admin-office-backend.vercel.app'; 
 
   useEffect(() => {
     const fetchAssistants = async () => {
